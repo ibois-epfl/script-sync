@@ -22,9 +22,9 @@ namespace ScriptSync
 
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            string pyFile = @"F:\pysync\pyversion.py";
+            string pyFile = @"F:\ScriptSync\pyversion.py";
             RhinoApp.InvokeOnUiThread(new Action(() => {
-                RhinoApp.WriteLine("Result: {0}", RhinoApp.RunScript("_-RunPythonScript " + pyFile, true));
+                RhinoApp.WriteLine("Result: {0}", RhinoApp.RunScript("_-ScriptEditor Run " + pyFile, true));
             }));
             return Rhino.Commands.Result.Success;
         }
