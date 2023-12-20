@@ -60,16 +60,20 @@ namespace ScriptSync
             while (_isRunning)
             {
                 TcpClient client = _server.AcceptTcpClient();
-                // read the data from the client
                 byte[] data = new byte[1024];
                 client.GetStream().Read(data, 0, data.Length);
                 string scriptPath = Encoding.ASCII.GetString(data);
-                RhinoApp.WriteLine("Executing script: " + scriptPath);
 
                 RhinoApp.InvokeOnUiThread(new Action(() =>
                 {
-                    RhinoApp.WriteLine("Hello from UI thread");
-                    RhinoApp.RunScript("_-ScriptEditor Run \"" + scriptPath + "\"", true);
+                    try
+                    {
+                        RhinoApp.RunScript("_-ScriptEditor Run \"" + scriptPath + "\"", true);
+                    }
+                    catch (Exception e)
+                    {
+                        RhinoApp.WriteLine("Error: " + e.Message);
+                    }
                 }));
             }
         }
