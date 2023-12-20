@@ -6,6 +6,9 @@
     <Title>ScriptSync</Title>
     <Description>Description of ScriptSync</Description>
     <TargetExt>.rhp</TargetExt>
+    <AssemblyName>ScriptSync</AssemblyName>
+    <RootNamespace>ScriptSync</RootNamespace>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +18,10 @@
   <ItemGroup>
     <PackageReference Include="RhinoCommon" Version="7.13.21348.13001" IncludeAssets="compile;build" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\CsVersion.cs" />
   </ItemGroup>
 
 </Project>

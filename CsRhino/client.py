@@ -10,7 +10,9 @@ def send_file(server_address, server_port):
     client_socket.connect((server_address, server_port))
 
     # send the following path to the server
-    path = "F:\ScriptSync\pyversion.py"
+    path = r"F:\script-sync\CsRhino\tests\cpy_version.py"
+    path = r"F:\script-sync\CsRhino\tests\ironpy_version.py"
+    path = r"F:\script-sync\CsRhino\tests\CsVersion.cs"
     client_socket.send(path.encode())
 
     # Close the socket

@@ -57,6 +57,12 @@ namespace ScriptSync
             _server.Start();
             _isRunning = true;
 
+            RhinoApp.InvokeOnUiThread(new Action(() =>
+            {
+                if (!IsScriptEditorRunnerFromThreadOk())
+                    throw new Exception("ScriptEditorRunner is not working");
+            }));
+
             while (_isRunning)
             {
                 TcpClient client = _server.AcceptTcpClient();
@@ -68,7 +74,7 @@ namespace ScriptSync
                 {
                     try
                     {
-                        RhinoApp.RunScript("_-ScriptEditor Run \"" + scriptPath + "\"", true);
+                        RhinoApp.RunScript("_-ScriptEditor Run " + scriptPath, true);
                     }
                     catch (Exception e)
                     {
@@ -76,6 +82,21 @@ namespace ScriptSync
                     }
                 }));
             }
+        }
+
+        private bool IsScriptEditorRunnerFromThreadOk()
+        {
+            string cPyScriptPath = System.IO.Path.GetFullPath(@"./tests/cpy_version.py");
+            string ironPyScriptPath = System.IO.Path.GetFullPath(@"./tests/ironpy_version.py");
+            string csScriptPath = System.IO.Path.GetFullPath(@"./tests/CsVersion.cs");
+
+            bool cPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + cPyScriptPath, false);
+            bool ironPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + ironPyScriptPath, false);
+            bool csIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + csScriptPath, false);
+
+            if (!cPyIsRunning || !ironPyIsRunning || !csIsRunning)
+                return false;
+            return true;
         }
     }
 }
