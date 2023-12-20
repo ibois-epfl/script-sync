@@ -7,3 +7,6 @@ F:\ScriptSync\bin\Debug\net48\ScriptSync.rhp
 F:\ScriptSync\bin\Debug\net48\ScriptSync.pdb
 F:\ScriptSync\obj\Debug\net48\ScriptSync.rhp
 F:\ScriptSync\obj\Debug\net48\ScriptSync.pdb
+F:\ScriptSync\bin\Debug\net48\System.Net.Http.Formatting.dll
+F:\ScriptSync\bin\Debug\net48\Newtonsoft.Json.dll
+F:\ScriptSync\obj\Debug\net48\ScriptSync.csproj.CopyComplete

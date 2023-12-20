@@ -44,6 +44,10 @@
         "net48": {
           "targetAlias": "net48",
           "dependencies": {
+            "Microsoft.AspNet.WebApi.Client": {
+              "target": "Package",
+              "version": "[5.2.6, )"
+            },
             "RhinoCommon": {
               "include": "Compile, Build",
               "target": "Package",

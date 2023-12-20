@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "1vl5M/yHY+BQ770fLwdaYT88To4R6lrnQbXEMX4b76KDw2Xfv820LifEpCo8YsMJjpxoXAq9DRt0iHn8rirfhw==",
+  "dgSpecHash": "JX9uSPdLUxcGyJEwrcr1fEDGV6G2nuln8qfAVIaoyf3cJsO2l08adLxTeFQHVMTqe/UlFUSYQgJQIRnSAoix/A==",
   "success": true,
   "projectFilePath": "F:\\ScriptSync\\ScriptSync.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.aspnet.webapi.client\\5.2.6\\microsoft.aspnet.webapi.client.5.2.6.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\newtonsoft.json\\6.0.4\\newtonsoft.json.6.0.4.nupkg.sha512",
     "C:\\Users\\andre\\.nuget\\packages\\rhinocommon\\7.13.21348.13001\\rhinocommon.7.13.21348.13001.nupkg.sha512"
   ],
   "logs": []
