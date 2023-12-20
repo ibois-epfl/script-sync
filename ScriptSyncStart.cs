@@ -26,12 +26,9 @@ namespace ScriptSync
 
         public ScriptSyncStart()
         {
-            // Rhino only creates one instance of each command class defined in a
-            // plug-in, so it is safe to store a refence in a static property.
             Instance = this;
         }
 
-        ///<summary>The only instance of this command.</summary>
         public static ScriptSyncStart Instance { get; private set; }
 
         public override string EnglishName => "ScriptSyncStart";
@@ -39,14 +36,14 @@ namespace ScriptSync
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             // start a local server
-            RhinoApp.WriteLine("Starting server if not already running...");
-            // if (_isRunning)
-            // {
-            //     RhinoApp.WriteLine("Server already running");
-            //     return Rhino.Commands.Result.Success;
-            // }
-            // _server = new TcpListener(IPAddress.Parse(_ip), _port);
-            // _isRunning = false;
+            RhinoApp.WriteLine("Starting ScriptSync..");
+            if (_isRunning)
+            {
+                RhinoApp.WriteLine("Server already running");
+                return Rhino.Commands.Result.Success;
+            }
+            _server = new TcpListener(IPAddress.Parse(_ip), _port);
+            _isRunning = false;
 
             // start a thread in async mode
             Thread thread = new Thread(new ThreadStart(Run));
@@ -57,34 +54,24 @@ namespace ScriptSync
 
         public void Run()
         {
-            // _server.Start();
+            _server.Start();
             _isRunning = true;
-
-            string pyFile = @"F:\ScriptSync\pyversion.py";
 
             while (_isRunning)
             {
-                // TcpClient client = _server.AcceptTcpClient();
-                // byte[] data = Encoding.ASCII.GetBytes("Hello from server");
-                // client.GetStream().Write(data, 0, data.Length);
-                // client.Close();
-
-                // wait 2 seconds
-                Thread.Sleep(2000);
-
+                TcpClient client = _server.AcceptTcpClient();
+                // read the data from the client
+                byte[] data = new byte[1024];
+                client.GetStream().Read(data, 0, data.Length);
+                string scriptPath = Encoding.ASCII.GetString(data);
+                RhinoApp.WriteLine("Executing script: " + scriptPath);
 
                 RhinoApp.InvokeOnUiThread(new Action(() =>
-                // Eto.Forms.Application.Instance.Invoke(() =>
                 {
                     RhinoApp.WriteLine("Hello from UI thread");
-                    RhinoApp.RunScript("_-ScriptEditor Run \"" + pyFile + "\"", true);
-
+                    RhinoApp.RunScript("_-ScriptEditor Run \"" + scriptPath + "\"", true);
                 }));
-
-            
             }
         }
-
-
     }
 }

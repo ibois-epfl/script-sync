@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="EmbeddedResources\**\*" />
+    <EmbeddedResource Include="EmbeddedResources\logo\scriptsync_48.ico" />
   </ItemGroup>
 
   <ItemGroup>
