@@ -21,6 +21,6 @@ def send_file(server_address, server_port):
 
 if __name__ == "__main__":
     server_address = '127.0.0.1'  # Change this to the server's IP address
-    server_port = 13000  # Change this to the server's port number
+    server_port = 58259  # Change this to the server's port number
 
     send_file(server_address, server_port)

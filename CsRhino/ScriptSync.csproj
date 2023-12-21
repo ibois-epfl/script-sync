@@ -4,7 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <Version>1.0</Version>
     <Title>ScriptSync</Title>
-    <Description>Description of ScriptSync</Description>
+    <Description>ScriptSync allows to run C# and Python (IronPython or CPython) in RhinoV8 directly from VSCode.</Description>
     <TargetExt>.rhp</TargetExt>
     <AssemblyName>ScriptSync</AssemblyName>
     <RootNamespace>ScriptSync</RootNamespace>
