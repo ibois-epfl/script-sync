@@ -41,8 +41,20 @@ namespace ScriptSync
         private void Stop()
         {
             ScriptSyncStart.Instance.IsRunning = false;
-            // ScriptSyncStart.Instance.Server.Stop();
-            ScriptSyncStart.Instance.WorkerThread.Abort();
+            using (TcpClient client = new TcpClient())
+            {
+                try
+                {
+                    client.Connect(IPAddress.Parse(ScriptSyncStart.Instance.Ip), ScriptSyncStart.Instance.Port);
+                }
+                catch (Exception e)
+                {
+                    RhinoApp.WriteLine("Error: " + e.Message);
+                    return;
+                }
+            }
+
+
             // TcpClient client = new TcpClient();
             // client.Connect(IPAddress.Parse(ScriptSyncStart.Instance.Ip), ScriptSyncStart.Instance.Port);
             // NetworkStream stream = client.GetStream();

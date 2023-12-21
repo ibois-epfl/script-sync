@@ -19,7 +19,6 @@ namespace ScriptSync
     public class ScriptSyncStart : Command
     {
         private TcpListener _server;
-        public TcpListener Server { get { return _server; } }
         public Thread WorkerThread { get; set; }
         public bool IsRunning { get; set; }
         public string Ip = "127.0.0.1";
@@ -66,36 +65,39 @@ namespace ScriptSync
 
             while (IsRunning)
             {
-                using (TcpClient client = _server.AcceptTcpClient())
-                {
-                    byte[] data = new byte[1024];
-                    using (NetworkStream stream = client.GetStream())
-                    {
-                        stream.Read(data, 0, data.Length);
-                    }
-                    string scriptPath = Encoding.ASCII.GetString(data);
-                    RhinoApp.InvokeOnUiThread(new Action(() =>
-                    {
-                        RhinoApp.WriteLine("Path. " + scriptPath + "");
-                    }));
-                    // // stop the server
-                    // if (scriptPath == "101")
-                    //     goto end;
 
+                TcpClient client = _server.AcceptTcpClient();
+                byte[] data = new byte[1024];
+                NetworkStream stream = client.GetStream();
+                int bytesRead = stream.Read(data, 0, data.Length);
+                string scriptPath = Encoding.ASCII.GetString(data, 0, bytesRead);
+                RhinoApp.InvokeOnUiThread(new Action(() =>
+                {
+                    RhinoApp.WriteLine("Path. " + scriptPath + "");
+                }));
+
+                if (bytesRead == 0)
+                {
                     RhinoApp.InvokeOnUiThread(new Action(() =>
                     {
-                        try
-                        {
-                            RhinoApp.RunScript("_-ScriptEditor Run " + scriptPath, true);
-                        }
-                        catch (Exception e)
-                        {
-                            RhinoApp.WriteLine("Error: " + e.Message);
-                        }
+                        RhinoApp.WriteLine("Stopping ScriptSync..");
                     }));
+                    IsRunning = false;
+                    break;
                 }
+
+                RhinoApp.InvokeOnUiThread(new Action(() =>
+                {
+                    try
+                    {
+                        RhinoApp.RunScript("_-ScriptEditor Run " + scriptPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        RhinoApp.WriteLine("Error: " + e.Message);
+                    }
+                }));
             }
-            // end:
             _server.Stop();
             RhinoApp.InvokeOnUiThread(new Action(() =>
             {
