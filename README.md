@@ -6,7 +6,7 @@
 This repository contains the code and Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
 
 ##TODO:
-- [ ] write stop command
+- [x] write stop command
 - [ ] write docstrings
 - [ ] write ci
 - [ ] possibly redirect output from `RhinoApp.RunScript()` to get rid of first line where we see ScriptEditor and send it back to vscode?
