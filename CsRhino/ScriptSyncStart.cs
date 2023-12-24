@@ -18,10 +18,15 @@ namespace ScriptSync
     [Rhino.Commands.CommandStyle(Rhino.Commands.Style.ScriptRunner)]
     public class ScriptSyncStart : Command
     {
+        /// <summary> The server that listens for incoming paths to run. </summary>
         private TcpListener _server;
+        /// <summary> The thread that runs the server. </summary>
         public Thread WorkerThread { get; set; }
+        /// <summary> Whether the server is running or not. </summary>
         public bool IsRunning { get; set; }
+        /// <summary> The IP address of the server. </summary>
         public string Ip = "127.0.0.1";
+        /// <summary> The port of the server. </summary>
         public int Port = 58259;
 
         public ScriptSyncStart()
@@ -35,6 +40,10 @@ namespace ScriptSync
 
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
+            // initialize the ScriptEditor if it is not already
+            RhinoApp.RunScript("_-ScriptEditor _Enter", false);
+
+            // start the server on a new thread
             RhinoApp.WriteLine("Starting ScriptSync..");
             if (IsRunning)
             {
@@ -50,6 +59,9 @@ namespace ScriptSync
             return Rhino.Commands.Result.Success;
         }
 
+        /// <summary>
+        /// It is called on a thread to run the server and listen for incoming paths to run.
+        /// </summary>
         public void Run()
         {
             _server.Start();
@@ -71,10 +83,6 @@ namespace ScriptSync
 
                 if (bytesRead == 0)
                 {
-                    RhinoApp.InvokeOnUiThread(new Action(() =>
-                    {
-                        RhinoApp.WriteLine("Stopping ScriptSync..");
-                    }));
                     IsRunning = false;
                     break;
                 }
@@ -98,6 +106,10 @@ namespace ScriptSync
             }));
         }
 
+        /// <summary>
+        /// The ScriptEditor on a thread needs a dry run to be able to run scripts.
+        /// </summary>
+        /// <returns> true if the dry run is ok </returns>
         private bool IsScriptEditorRunnerFromThreadOk()
         {
             string cPyScriptPath = System.IO.Path.GetFullPath(@"./temp/cpy_version.py");
@@ -108,9 +120,9 @@ namespace ScriptSync
             System.IO.File.WriteAllText(ironPyScriptPath, "#! python2\nimport sys\nprint(sys.version)");
             System.IO.File.WriteAllText(csScriptPath, "using System;\n\nCsVersion.Main();\n\nclass CsVersion\n{\n\tstatic public void Main()\n\t{\n\t\tConsole.WriteLine(\"C# Runtime: \" + Environment.Version.ToString());\n\t\tConsole.WriteLine(\"platform: \" + Environment.OSVersion.ToString());\n\t}\n}");
 
-            bool cPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + cPyScriptPath, false);
-            bool ironPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + ironPyScriptPath, false);
-            bool csIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + csScriptPath, false);
+            bool cPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + cPyScriptPath, true);
+            bool ironPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + ironPyScriptPath, true);
+            bool csIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + csScriptPath, true);
 
             System.IO.File.Delete(cPyScriptPath);
             System.IO.File.Delete(ironPyScriptPath);

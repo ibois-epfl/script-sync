@@ -28,7 +28,6 @@ namespace ScriptSync
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             // start a local server
-            RhinoApp.WriteLine("Stopping ScriptSync..");
             if ( !ScriptSyncStart.Instance.IsRunning )
             {
                 RhinoApp.WriteLine("ScriptSync not running");
@@ -38,6 +37,9 @@ namespace ScriptSync
             return Rhino.Commands.Result.Success;
         }
 
+        /// <summary>
+        /// It is called on a thread to run the server and listen for incoming paths to run.
+        /// </summary>
         private void Stop()
         {
             ScriptSyncStart.Instance.IsRunning = false;
@@ -53,15 +55,6 @@ namespace ScriptSync
                     return;
                 }
             }
-
-
-            // TcpClient client = new TcpClient();
-            // client.Connect(IPAddress.Parse(ScriptSyncStart.Instance.Ip), ScriptSyncStart.Instance.Port);
-            // NetworkStream stream = client.GetStream();
-            // byte[] data = Encoding.ASCII.GetBytes("101");
-            // stream.Write(data, 0, data.Length);
-            // stream.Close();
-            // client.Close();
         }
     }
 }

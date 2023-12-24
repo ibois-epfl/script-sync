@@ -7,7 +7,11 @@ import * as net from 'net';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('extension.sendPath', () => {
-        // activate for output pannel logging
+        // port and ip address of the server
+        const port = 58259;
+        const host = '127.0.0.1';
+
+        // // activate for output pannel logging
         // const outputChannel = vscode.window.createOutputChannel('scriptsync');
         // outputChannel.show(true);
         // outputChannel.appendLine('scriptsync::executing script in Rhino...');
@@ -25,21 +29,13 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        // ping the server
         const client = new net.Socket();
 
-        // verify if the server is running
-        client.on('error', (err) => {
-            vscode.window.showWarningMessage('scriptsync::run ScriptSyncRun on Rhino.');
+        client.on('error', (error) => {
+            vscode.window.showErrorMessage('scriptsync::Run ScriptSyncStart on Rhino first.');
+            console.error('Error: ', error);
         });
-        // client.on('close' || 'end', () => {
-        //     outputChannel.appendLine('scriptsync::Script executed in Rhino.');
-        // });
-        
         client.connect(58259, '127.0.0.1', () => {
-
-            // vscode.window.showInformationMessage('scriptsync::Connected to the server');
-
             const activeTextEditor = vscode.window.activeTextEditor;
             if (activeTextEditor) {
                 const activeDocument = activeTextEditor.document;
@@ -50,9 +46,6 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('scriptsync::No active text editor');
             }
         });
-
-        // close the connection
-        client.destroy();
     });
 
     context.subscriptions.push(disposable);
