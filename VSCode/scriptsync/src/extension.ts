@@ -7,14 +7,15 @@ import * as net from 'net';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('extension.sendPath', () => {
-        const outputChannel = vscode.window.createOutputChannel('scriptsync');
-        outputChannel.show(true);
-        outputChannel.appendLine('scriptsync::executing file in Rhino scriptsync...');
+        // activate for output pannel logging
+        // const outputChannel = vscode.window.createOutputChannel('scriptsync');
+        // outputChannel.show(true);
+        // outputChannel.appendLine('scriptsync::executing script in Rhino...');
 
         // check the file extension: accept only .py and .cs files
         const activeTextEditor = vscode.window.activeTextEditor;
         let fileExtension = '';
-        const activeDocument = null
+        
         if (activeTextEditor) {
             const activeDocument = activeTextEditor.document;
             fileExtension = activeDocument.uri.path.split('.').pop() || '';
@@ -24,46 +25,34 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        // check if the server is on
-        let serverIsOn = false;
-        const clientCheck = new net.Socket();
-        clientCheck.connect(58259, '127.0.0.1', () => {
-            console.log('scriptsync::Connected');
-            serverIsOn = true;
-            clientCheck.destroy();
-        }
-        );
-        clientCheck.on('close', () => {
-            console.log('Connection closed');
-        });
-
-        // check if the server is on, if not pop a warning message in vscode
-        if (serverIsOn) {
-            outputChannel.appendLine('Server is on');
-        }
-        else {
-            outputChannel.appendLine('Server is off');
-            vscode.window.showWarningMessage('Server is off');
-        }
-        
+        // ping the server
         const client = new net.Socket();
+
+        // verify if the server is running
+        client.on('error', (err) => {
+            vscode.window.showWarningMessage('scriptsync::run ScriptSyncRun on Rhino.');
+        });
+        // client.on('close' || 'end', () => {
+        //     outputChannel.appendLine('scriptsync::Script executed in Rhino.');
+        // });
+        
         client.connect(58259, '127.0.0.1', () => {
-            console.log('Connected');
-            // aboslute path of the file open in the editor
+
+            // vscode.window.showInformationMessage('scriptsync::Connected to the server');
+
             const activeTextEditor = vscode.window.activeTextEditor;
-            const activeDocument = activeTextEditor.document;
-            const activeDocumentPath = activeDocument.uri.path;
-            client.write(activeDocumentPath);
+            if (activeTextEditor) {
+                const activeDocument = activeTextEditor.document;
+                const activeDocumentPath = activeDocument.uri.path;
+                client.write(activeDocumentPath);
+            }
+            else {
+                vscode.window.showWarningMessage('scriptsync::No active text editor');
+            }
         });
 
-        client.on('data', (data) => {
-            console.log('Received: ' + data);
-            client.destroy(); // kill client after server's response
-        });
-
-        client.on('close', () => {
-            console.log('Connection closed');
-        });
+        // close the connection
+        client.destroy();
     });
 
     context.subscriptions.push(disposable);
