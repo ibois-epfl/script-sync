@@ -40,7 +40,8 @@ namespace ScriptSync
 
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            // initialize the ScriptEditor if it is not already
+            // initialize the ScriptEditor if it is not already. Otherwise the first client
+            // tcp message needs to be sent twice to be executed.
             RhinoApp.RunScript("_-ScriptEditor _Enter", false);
 
             // start the server on a new thread
