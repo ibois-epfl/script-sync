@@ -1,0 +1,16 @@
+#####################
+# VSCode extension
+#####################
+
+.DS_Store
+npm-debug.log
+Thumbs.db
+*/node_modules/
+*/out/
+*/.vs/
+tsconfig.lsif.json
+*.lsif
+*.db
+# all the folders .vscode-test/ are generated when running tests
+./scriptsync/.vscode-test/
+./scriptsync/.vscode/
