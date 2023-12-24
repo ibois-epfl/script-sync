@@ -14,8 +14,8 @@ This repository contains the code and Rhino plug-in to run C# and Python (IronPy
 
 Open a `.py` or `.cs` file in VSCode and run it in RhinoV8 by pressing `F4`.
 Add a `shebang` to the first line of the file to specify the Python interpreter to use, e.g.:
-* `#!python3` to use CPython
-* `#!python2` to use CPython
+* `#!python3` to interpret it with CPython
+* `#!python2` to interpret it with IronPython
 
 ## Requirements
 
