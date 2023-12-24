@@ -10,7 +10,11 @@ Thumbs.db
 */.vs/
 tsconfig.lsif.json
 *.lsif
+<<<<<<< HEAD
 *.db
 # all the folders .vscode-test/ are generated when running tests
 ./scriptsync/.vscode-test/
 ./scriptsync/.vscode/
+=======
+*.db
+>>>>>>> f37b69e46426f973f2dc753efb3a5bb314ab8e1e
