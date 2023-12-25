@@ -1,7 +1,7 @@
 {
-  "name": "scriptsync",
-  "displayName": "ScriptSync",
-  "description": "ScriptSync allows to run C# and Python (IronPython or CPython) in Rhino8 directly from VSCode.",
+  "name": "script-sync",
+  "displayName": "script-sync",
+  "description": "script-sync allows to run C# and Python (IronPython or CPython) in Rhino8 directly from VSCode.",
   "publisher": "ibois-epfl",
   "author": {
     "name": "Andrea Settimi",
@@ -11,8 +11,7 @@
     "type": "git",
     "url": "https://github.com/ibois-epfl/script-sync"
   },
-  "vscode": {
-    "baseContentUrl": "https://github.com/ibois-epfl/script-sync/tree/main/VSCode/scriptsync",
+  "vsce": {
     "baseImagesUrl": "https://github.com/ibois-epfl/script-sync/tree/main/VSCode/scriptsync"
   },
   "version": "1.0.0",

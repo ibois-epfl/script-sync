@@ -21,7 +21,7 @@ To close `ScriptSync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 ## Requirements
 The plug-in needs to be installed on RhinoV8.
 
-# Caveats
+## Caveats
 There is no intellisense for C# and Python in VSCode.
 
 ## Release Notes
