@@ -2,7 +2,7 @@
 
 This repository contains the code and Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
 
-![vsce_record_vid_gif20fps](https://raw.githubusercontent.com/ibois-epfl/script-sync/main/assets/50238678/7ccb2aa5-e646-45cd-9657-95776d24a48a)
+![](https://github.com/ibois-epfl/script-sync/blob/main/VSCode/scriptsync/vid/record_vid_gif20fps.gif?raw=true)
 
 ## Features
 To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8. This will start a server that listens to commands from VSCode.
