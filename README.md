@@ -50,6 +50,7 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 
 ## Roadmap
 - [ ] publish yak package + auto pipeline
+- [ ] publish on tools website lab
 - [ ] add instructions for dev and contribution
 - [ ] add icons
 - [ ] write ci
