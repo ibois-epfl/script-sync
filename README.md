@@ -48,7 +48,7 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 * [IBOIS lab page](https://www.epfl.ch/labs/ibois/)
 
 
-## Current implementation
+## Roadmap
 
 - [x] write stop command
 - [x] write docstrings
@@ -58,5 +58,6 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 - [ ] write tests
 - [ ] publish vscode extension
 - [ ] possibly redirect output from `RhinoApp.RunScript()` to vscode consoles or log file
+- [ ] add intellisense for py and c#
 
 
