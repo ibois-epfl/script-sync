@@ -11,9 +11,6 @@
     "type": "git",
     "url": "https://github.com/ibois-epfl/script-sync"
   },
-  "vsce": {
-    "baseImagesUrl": "https://github.com/ibois-epfl/script-sync/tree/main/VSCode/scriptsync"
-  },
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.85.0"
