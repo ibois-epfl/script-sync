@@ -46,3 +46,13 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 * [GitHub repo](https://github.com/ibois-epfl/script-sync)
 * [IBOIS GitHub organization](https://github.com/ibois-epfl)
 * [IBOIS lab page](https://www.epfl.ch/labs/ibois/)
+
+
+## Roadmap
+- [ ] publish yak package + auto pipeline
+- [ ] add instructions for dev and contribution
+- [ ] add icons
+- [ ] write ci
+- [ ] write tests
+- [ ] ci action to publish automatic releases
+- [ ] possibly redirect output from RhinoApp.RunScript() to vscode consoles or log file
