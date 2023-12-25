@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="logo/scriptsync_480.png" width="140">
+    <img src="https://github.com/ibois-epfl/script-sync/blob/main/VSCode/logo/scriptsync_480.png?raw=true"  width="140">
 </p>
 
 # script-sync
