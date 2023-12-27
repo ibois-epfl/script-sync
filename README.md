@@ -45,9 +45,10 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 
 ## Roadmap
 - [x] publish yak package + auto pipeline
-- [ ] publish on tools website lab
-- [ ] add instructions for dev and contribution
+- [x] publish on tools website lab
+- [x] add instructions for dev and contribution
 - [ ] write ci
 - [ ] write tests
 - [ ] ci action to publish automatic releases
 - [ ] possibly redirect output from RhinoApp.RunScript() to vscode consoles or log file
+- [ ] add intellisense for C# and Python Rhino in vscode
