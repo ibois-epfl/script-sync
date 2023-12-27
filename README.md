@@ -2,6 +2,11 @@
     <img src="VSCode\scriptsync\logo\scriptsync_480.png" width="140">
 </p>
 
+<p align="center">
+    <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/rhinoplugin.yml/badge.svg">
+</p>
+
+
 # script-sync
 
 This repository contains the code and Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
