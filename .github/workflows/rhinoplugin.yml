@@ -15,10 +15,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '4.8'  # replace with your .NET version
+    #install net48
+    - name: Install .NET Framework 4.8
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Restore dependencies
       run: dotnet restore ./CsRhino/ScriptSync.csproj  # replace with your .csproj path
