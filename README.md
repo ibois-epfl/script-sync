@@ -37,13 +37,11 @@ There are a lot of plug-ins that allow to run Python in Rhino. Among them, [Code
 ## Citation
 This project is part of the research activities of the [IBOIS lab](https://www.epfl.ch/labs/ibois/) at EPFL. It was developed by [Andrea Settimi](https://github.com/9and3).
 
-
 ## For more information
 
 * [GitHub repo](https://github.com/ibois-epfl/script-sync)
 * [IBOIS GitHub organization](https://github.com/ibois-epfl)
 * [IBOIS lab page](https://www.epfl.ch/labs/ibois/)
-
 
 ## Roadmap
 - [x] publish yak package + auto pipeline
