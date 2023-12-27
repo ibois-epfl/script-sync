@@ -49,7 +49,6 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 - [x] publish yak package + auto pipeline
 - [ ] publish on tools website lab
 - [ ] add instructions for dev and contribution
-- [ ] add icons
 - [ ] write ci
 - [ ] write tests
 - [ ] ci action to publish automatic releases
