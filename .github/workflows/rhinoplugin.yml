@@ -1,13 +1,10 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: RhinoPlugin
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -15,12 +12,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 4.8.x
+        dotnet-version: '4.8'  # replace with your .NET version
+
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./CsRhino/ScriptSync.csproj  # replace with your .csproj path
+
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build ./CsRhino/ScriptSync.csproj --configuration Release --no-restore
+
+    - name: Save artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: CsRhino.rhp
+        path: ./CsRhino/bin/Release/netcoreapp3.1/CsRhino.rhp  # replace with the path to your .rhp file
