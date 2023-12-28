@@ -25,7 +25,7 @@ jobs:
 
     - name: Build VSIX package
       run: |
-        cd scriptsync/VSCode/scriptsync
+        cd VSCode/scriptsync
         npm install
         vsce package
 
