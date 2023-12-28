@@ -49,6 +49,9 @@ This project is part of the research activities of the [IBOIS lab](https://www.e
 * [IBOIS GitHub organization](https://github.com/ibois-epfl)
 * [IBOIS lab page](https://www.epfl.ch/labs/ibois/)
 
+# For code maintainers
+Follow the instructions in [RELEASE.md](RELEASE.md) to release a new version of the package.
+
 ## Roadmap
 - [x] publish yak package + auto pipeline
 - [x] publish on tools website lab
