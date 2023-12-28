@@ -1,0 +1,36 @@
+name: VSCodeExtension
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install vsce
+      run: npm install -g vsce
+
+    - name: Build VSIX package
+      run: |
+        cd scriptsync/VSCode
+        npm install
+        vsce package
+
+    # - name: Upload VSIX package
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: VSCodeExtension
+    #     path: scriptsync/VSCode/*.vsix
