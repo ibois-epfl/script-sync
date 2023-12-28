@@ -4,6 +4,7 @@
 
 <p align="center">
     <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/rhinoplugin.yml/badge.svg">
+    <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/vscodeext.yml/badge.svg">
 </p>
 
 
