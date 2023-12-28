@@ -20,7 +20,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Restore dependencies
-      run: dotnet restore ./CsRhino/ScriptSync.csproj  # replace with your .csproj path
+      run: dotnet restore ./CsRhino/ScriptSync.csproj
 
     - name: Build
       run: dotnet build ./CsRhino/ScriptSync.csproj --configuration Release --no-restore
@@ -28,5 +28,5 @@ jobs:
     - name: Save artifact
       uses: actions/upload-artifact@v2
       with:
-        name: CsRhino.rhp
-        path: ./CsRhino/bin/Release/netcoreapp3.1/CsRhino.rhp  # replace with the path to your .rhp file
+        name: ScriptSync.rhp
+        path: ./CsRhino/bin/Release/net48/ScriptSync.rhp
