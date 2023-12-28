@@ -32,5 +32,5 @@ jobs:
     - name: Save artifact
       uses: actions/upload-artifact@v2
       with:
-        name: VSCodeExtension
+        name: script-sync
         path: VSCode/scriptsync/*.vsix
