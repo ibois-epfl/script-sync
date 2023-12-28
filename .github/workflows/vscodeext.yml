@@ -30,13 +30,7 @@ jobs:
         vsce package
 
     - name: Save artifact
-        uses: actions/upload-artifact@v2
-        with:
-            name: VSCodeExtension
-            path: VSCode/scriptsync/*.vsix
-
-    # - name: Upload VSIX package
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: VSCodeExtension
-    #     path: scriptsync/VSCode/*.vsix
+      uses: actions/upload-artifact@v2
+      with:
+        name: VSCodeExtension
+        path: VSCode/scriptsync/*.vsix
