@@ -7,7 +7,6 @@
     <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/vscodeext.yml/badge.svg">
 </p>
 
-
 # script-sync
 
 This repository contains the code and Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
@@ -60,7 +59,7 @@ Follow the instructions in [RELEASE.md](RELEASE.md) to release a new version of 
 - [x] publish yak package + auto pipeline
 - [x] publish on tools website lab
 - [x] add instructions for dev and contribution
-- [ ] write ci
+- [x] write ci
 - [ ] write tests
 - [ ] ci action to publish automatic releases
 - [ ] possibly redirect output from RhinoApp.RunScript() to vscode consoles or log file
