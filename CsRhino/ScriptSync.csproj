@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Compile Remove="tests\CsVersion.cs" />
+    <Compile Remove="tests\cs_cube.cs" />
   </ItemGroup>
 
 </Project>
