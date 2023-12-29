@@ -22,8 +22,8 @@ To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8.
 
 Open a `.py` or `.cs` file in VSCode and run it in RhinoV8 by pressing `F4`.
 Add a `shebang` to the first line of the file to specify the Python interpreter to use, e.g.:
-* `#!python3` to interpret it with CPython
-* `#!python2` to interpret it with IronPython
+* `#! python3` to interpret it with CPython
+* `#! python2` to interpret it with IronPython
 
 To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 
