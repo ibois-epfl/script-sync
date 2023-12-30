@@ -9,7 +9,7 @@
 
 # script-sync
 
-This repository contains the code and Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
+Rhino/VSCode plug-in to run C# and Python (IronPython or CPython) scripts directly from VSCode. 
 
 ![record_vid_gif20fps](https://github.com/ibois-epfl/script-sync/assets/50238678/7ccb2aa5-e646-45cd-9657-95776d24a48a)
 
