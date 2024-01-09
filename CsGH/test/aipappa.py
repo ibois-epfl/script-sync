@@ -19,18 +19,6 @@ import rhinoscriptsyntax as rs
 def update_component():
     ghenv.Component.ExpireSolution(True)
 
-# class Thread(threading.Thread):
-#     def __init__(self, thread_id, name, file_path):
-#         threading.Thread.__init__(self)
-#         self.thread_id = thread_id
-#         self.name = name
-#         self.file_path = file_path
-
-#     def run(self):
-#         print("Starting " + self.name)
-#         check_file_change(self.file_path)
-#         print("Exiting " + self.name)
-
 def check_file_change(path):
     last_modified = os.path.getmtime(path)
     print("Entered file changed")
@@ -42,9 +30,9 @@ def check_file_change(path):
         if current_modified != last_modified:
             print("File has changed")
             last_modified = current_modified
-
+            update_component()
             break
-    print(">>>>>>>")
+    return
 
 
 def safe_exec(code, globals, locals):
@@ -54,7 +42,7 @@ def safe_exec(code, globals, locals):
         return True
     except Exception as e:
         print(e)
-        return False
+        return e
 
 
 class MyComponent(Grasshopper.Kernel.GH_ScriptInstance):
@@ -85,8 +73,6 @@ class MyComponent(Grasshopper.Kernel.GH_ScriptInstance):
         # thread.start()
         # threads.append(thread)
 
-        
-
 
 
 
@@ -97,11 +83,14 @@ class MyComponent(Grasshopper.Kernel.GH_ScriptInstance):
 
         with open(path, 'r') as f:
             code = f.read()
-        return_code = safe_exec(code, globals(), locals())
-
-        # # wait for all threads to complete
-        # for t in threads:
-        #     t.join()
+        res = safe_exec(code, globals(), locals())
+        if res == True:
+            return_code = True
+            msg = "Script executed successfully"
+        else:
+            return_code = False
+            msg = res
+            raise Exception(f"script-sync::error in the code: {msg}")
         
         return
 
