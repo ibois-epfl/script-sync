@@ -2,7 +2,6 @@
 	
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <!-- <LangVersion>8.0</LangVersion> -->
     <Version>1.0</Version>
     <Title>ScriptSyncGH</Title>
     <Description>Description of ScriptSyncGH</Description>
@@ -11,14 +10,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grasshopper" Version="7.13.21348.13001" IncludeAssets="compile;build" />
+    <PackageReference Include="Grasshopper" Version="8.2.23346.13001" IncludeAssets="compile;build" />
     <!-- <PackageReference Include="System.Resources.Extensions" Version="4.7.1" /> -->
-    <!-- <Reference Include="RhinoCodeEditor">
+    <Reference Include="RhinoCodeEditor">
       <HintPath>C:\Program Files\Rhino 8\System\RhinoCodeEditor.dll</HintPath>
     </Reference>
     <Reference Include="RhinoCodePluginGH">
       <HintPath>C:\Program Files\Rhino 8\Plug-ins\Grasshopper\Components\RhinoCodePluginGH.gha</HintPath>
-    </Reference> -->
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="test/*" />
+  </ItemGroup>
+
+  <!-- Post-build processes -->
+  <Target Name="PostBuild" AfterTargets="Build">
+    <Exec Command="del $(OutDir)RhinoCodePluginGH.gha" />
+  </Target>
 
 </Project>

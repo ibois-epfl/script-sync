@@ -6,10 +6,14 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
+using RhinoCodePluginGH;
+using RhinoCodePluginGH.Components;
+using RhinoCodePluginGH.Parameters;
+
 
 namespace ScriptSyncGH
 {
-  public class ScriptSyncGHComponent : GH_Component
+  public class ScriptSyncGHComponent : BaseScriptComponent<ScriptParam, ScriptLibraryParam>
   {
     /// <summary>
     /// Each implementation of GH_Component must provide a public 
@@ -19,9 +23,10 @@ namespace ScriptSyncGH
     /// new tabs/panels will automatically be created.
     /// </summary>
     public ScriptSyncGHComponent()
-      : base("ScriptSyncComponent", "SC",
-        "Test component",
-        "script-sync", "Default")
+    : base("77dc9957-c958-45b0-b9d2-6d1437ee8d8a", "ScriptSyncComponent", "ScriptSyncTest", "ST", "ScriptSync component", "ScriptSync", "Script")
+      // : base("ScriptSyncComponent", "SC",
+      //   "Test component",
+      //   "script-sync", "Default")
     {
     }
 
@@ -30,6 +35,12 @@ namespace ScriptSyncGH
     /// </summary>
     protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
     {
+      pManager.AddParameter(CreateParameter(GH_ParameterSide.Input, pManager.ParamCount));
+      pManager.AddParameter(CreateParameter(GH_ParameterSide.Input, pManager.ParamCount));
+
+      // add a component message
+      // Message = "ScriptSyncComponent";
+      this.Message = "ScriptSyncComponent";
     }
 
     /// <summary>
@@ -37,6 +48,8 @@ namespace ScriptSyncGH
     /// </summary>
     protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
     {
+      pManager.RegisterParam(CreateParameter(GH_ParameterSide.Output, pManager.ParamCount));
+      UsingStandardOutputParam = true;
     }
 
     /// <summary>
@@ -46,6 +59,7 @@ namespace ScriptSyncGH
     /// to store data in output parameters.</param>
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+      base.SolveInstance(DA);
     }
 
     /// <summary>

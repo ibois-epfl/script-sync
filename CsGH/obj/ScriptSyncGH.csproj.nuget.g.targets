@@ -4,7 +4,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)rhinocommon\7.13.21348.13001\build\RhinoCommon.targets" Condition="Exists('$(NuGetPackageRoot)rhinocommon\7.13.21348.13001\build\RhinoCommon.targets')" />
-    <Import Project="$(NuGetPackageRoot)grasshopper\7.13.21348.13001\build\Grasshopper.targets" Condition="Exists('$(NuGetPackageRoot)grasshopper\7.13.21348.13001\build\Grasshopper.targets')" />
+    <Import Project="$(NuGetPackageRoot)rhinocommon\8.2.23346.13001\build\net48\RhinoCommon.targets" Condition="Exists('$(NuGetPackageRoot)rhinocommon\8.2.23346.13001\build\net48\RhinoCommon.targets')" />
+    <Import Project="$(NuGetPackageRoot)grasshopper\8.2.23346.13001\build\net48\Grasshopper.targets" Condition="Exists('$(NuGetPackageRoot)grasshopper\8.2.23346.13001\build\net48\Grasshopper.targets')" />
   </ImportGroup>
 </Project>
