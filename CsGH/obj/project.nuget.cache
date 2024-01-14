@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "hOOLcY8scMCIK/rLlaDXjFfnUMT+KVVW9V8AxQaJYrUpjTt6DYLLjDyISLtsBeCWZSA+DIbFU59VhypaYPNlvQ==",
+  "success": true,
+  "projectFilePath": "F:\\script-sync\\CsGH\\CsGH.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\andre\\.nuget\\packages\\grasshopper\\7.13.21348.13001\\grasshopper.7.13.21348.13001.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\rhinocommon\\7.13.21348.13001\\rhinocommon.7.13.21348.13001.nupkg.sha512"
+  ],
+  "logs": []
+}
