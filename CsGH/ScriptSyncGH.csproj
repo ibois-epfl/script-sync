@@ -1,21 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <Version>1.0</Version>
     <Title>ScriptSyncGH</Title>
     <Description>Description of ScriptSyncGH</Description>
     <TargetExt>.gha</TargetExt>
-    <!-- <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources> -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Grasshopper" Version="8.2.23346.13001" IncludeAssets="compile;build" />
-    <!-- <PackageReference Include="System.Resources.Extensions" Version="4.7.1" /> -->
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="RhinoCodeEditor">
+      <!-- add a reference to the RhinoCodeEditor.dll -->
       <HintPath>C:\Program Files\Rhino 8\System\RhinoCodeEditor.dll</HintPath>
     </Reference>
     <Reference Include="RhinoCodePluginGH">
+      <!-- add a reference to the RhinoCodePluginGH.gha -->
       <HintPath>C:\Program Files\Rhino 8\Plug-ins\Grasshopper\Components\RhinoCodePluginGH.gha</HintPath>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Reference>
@@ -25,9 +26,18 @@
     <Compile Remove="test/*" />
   </ItemGroup>
 
+  <!-- ##############################################################3 -->
   <!-- Post-build processes -->
   <Target Name="PostBuild" AfterTargets="Build">
+    <!-- Get rid of the gha in there (in reality is a .dll)??-->
     <Exec Command="del $(OutDir)RhinoCodePluginGH.gha" />
+
+    <!-- Replace .gha script-sync from grasshopper to what build -->
+    <Exec Command="del /Q /F &quot;C:\Users\andre\AppData\Roaming\Grasshopper\Libraries\ScriptSync\*.*&quot;" />
+    <Exec Command="xcopy /Y /I &quot;$(OutDir)*.*&quot; &quot;C:\Users\andre\AppData\Roaming\Grasshopper\Libraries\ScriptSync&quot;" />
+  
+    <!-- Run the script file -->
+    <Exec Command="start &quot;C:\Program Files\Rhino 8\System\Rhino.exe&quot; &quot;$(ProjectDir)test\bencher.gh&quot;" />
   </Target>
 
 </Project>
