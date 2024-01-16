@@ -56,9 +56,9 @@
         ],
         "outputParameters": [
             {
-                "name": "result",
-                "nickname": "result",
-                "description": "Result of the computation",
+                "name": "out",
+                "nickname": "out",
+                "description": "output of the computation",
                 "optional": false,
                 "sourceCount": 0,
                 "graft": true

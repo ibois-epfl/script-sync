@@ -18,7 +18,7 @@ runs:
     - run: nuget install Grasshopper -OutputDirectory ./lib -source https://api.nuget.org/v3/index.json
       shell: pwsh
     - run: |
-        $command="ipy"
+        $command="python"
         $params="${{ github.action_path }}/componentize.py", "${{ inputs.source }}", "${{ inputs.target }}", "--ghio", "./lib"
         $prefix="${{ inputs.prefix }}"      
         if( $prefix )

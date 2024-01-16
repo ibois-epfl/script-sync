@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import argparse
 import base64
 import json
@@ -7,9 +5,9 @@ import os
 import re
 import sys
 import tempfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import zipfile
-import StringIO
+from io import StringIO
 
 import clr
 import System
