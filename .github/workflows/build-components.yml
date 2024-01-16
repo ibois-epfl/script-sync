@@ -9,13 +9,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: NuGet/setup-nuget@v1.0.5
 
-      - name: Install Python and netpython
+      - name: Install Python and pythonnet
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-      - name: Install netpython
+      - name: Install pythonnet
         run: |
-          pip install netpython
+          pip install pythonnet
       - uses: ./.github/actions/ghpython-components
         with:
           source: components
