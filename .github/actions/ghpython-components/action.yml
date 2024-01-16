@@ -1,0 +1,32 @@
+# This action was implemented from the [compass componentizer](https://github.com/compas-dev/compas-actions.ghpython_components/tree/main). We retain no credit for the code, and only modified it to work with our own repository.
+
+name: 'Grasshopper componentizer'
+description: 'Create GHUser components from Python source code'
+inputs:
+  source:
+    description: 'Source directory where code for all components is stored'
+    required: true
+  target:
+    description: 'Target directory for ghuser files'
+    required: true
+  prefix:
+    description: 'Add this prefix to the name of each generated component'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - run: nuget install Grasshopper -OutputDirectory ./lib -source https://api.nuget.org/v3/index.json
+      shell: pwsh
+    - run: |
+        $command="ipy"
+        $params="${{ github.action_path }}/componentize.py", "${{ inputs.source }}", "${{ inputs.target }}", "--ghio", "./lib"
+        $prefix="${{ inputs.prefix }}"      
+        if( $prefix )
+        {
+          $params=$params + "--prefix", "$prefix"
+        }
+        & $command $params
+      shell: pwsh
+branding:
+  icon: 'box'
+  color: 'orange'

@@ -1,0 +1,68 @@
+{
+    "name": "Kitchen sink component example",
+    "nickname": "Everything",
+    "category": "Componentizer",
+    "subcategory": "ALL",
+    "description": "This is an example with the everything and the kitchen sink in it, just to show all available options.",
+    "exposure": 4,
+    "instanceGuid": "cdd47086-f902-4b77-825b-6b79c3aaecc1",
+    "ghpython": {
+        "hideOutput": true,
+        "hideInput": true,
+        "isAdvancedMode": true,
+        "marshalOutGuids": true,
+        "iconDisplay": 2,
+        "inputParameters": [
+            {
+                "name": "X",
+                "nickname": "x",
+                "description": "The X value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "faint",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "reverse": true,
+                "simplify": false
+            },
+            {
+                "name": "Y",
+                "nickname": "y",
+                "description": "The Y value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "simplify": true
+            },
+            {
+                "name": "Z",
+                "nickname": "z",
+                "description": "The Z value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "faint",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "flatten": true
+            }
+        ],
+        "outputParameters": [
+            {
+                "name": "result",
+                "nickname": "result",
+                "description": "Result of the computation",
+                "optional": false,
+                "sourceCount": 0,
+                "graft": true
+            }
+        ]
+    }
+}

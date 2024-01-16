@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
+
+using System.Reflection;
 
 using Grasshopper;
 using Grasshopper.Kernel;
@@ -15,6 +18,8 @@ namespace ScriptSyncGH
 {
   public class ScriptSyncGHComponent : BaseScriptComponent<ScriptParam, ScriptLibraryParam>
   {
+    private string _scriptSyncPath = @"F:\script-sync\CsGH\test\cpy_version.py";
+
     /// <summary>
     /// Each implementation of GH_Component must provide a public 
     /// constructor without any arguments.
@@ -28,7 +33,10 @@ namespace ScriptSyncGH
       //   "Test component",
       //   "script-sync", "Default")
     {
+      base.UsingScriptInputParam = true;
+      base.UsingLibraryInputParam = true;
     }
+
 
     /// <summary>
     /// Registers all the input parameters for this component.
@@ -37,6 +45,7 @@ namespace ScriptSyncGH
     {
       pManager.AddParameter(CreateParameter(GH_ParameterSide.Input, pManager.ParamCount));
       pManager.AddParameter(CreateParameter(GH_ParameterSide.Input, pManager.ParamCount));
+
 
       // add a component message
       // Message = "ScriptSyncComponent";
@@ -52,6 +61,54 @@ namespace ScriptSyncGH
       UsingStandardOutputParam = true;
     }
 
+    protected override void BeforeSolveInstance()
+    {
+      // add a panel component to input parameters
+
+      // foreach (IGH_Param param in Params.Input)
+      // {
+      //   Rhino.RhinoApp.WriteLine(param.NickName);
+      // }
+
+      // create a GH_Structure with the private member _scriptSyncPath
+      // Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.GH_String> scriptSyncPath = new Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.GH_String>();
+      // scriptSyncPath.Append(new Grasshopper.Kernel.Types.GH_String(_scriptSyncPath));
+
+
+
+
+
+
+
+      
+      // set to script input parameter the value of the script path
+      // check the "Input as Path" menu item for the script input parameter
+
+      base.BeforeSolveInstance();
+
+      // Params.Input[0].ClearData();
+      // Params.Input[0].AddVolatileData(new Grasshopper.Kernel.Data.GH_Path(0), 0, _scriptSyncPath);
+
+      // // print all the input parameters values
+      // Rhino.RhinoApp.WriteLine(Params.Input[0].NickName);
+      // Rhino.RhinoApp.WriteLine(Params.Input[0].VolatileData.ToString());
+      // Rhino.RhinoApp.WriteLine(Params.Input[0].VolatileData.PathCount.ToString());
+      // Rhino.RhinoApp.WriteLine(Params.Input[0].VolatileData.get_Branch(0).ToString());
+      // Rhino.RhinoApp.WriteLine(Params.Input[0].VolatileData.get_Branch(0)[0].ToString());
+
+
+    }
+
+    protected override void AfterSolveInstance()
+    {
+
+
+      // hide the first input parameter
+      // Params.UnregisterInputParameter(Params.Input[0], true);
+
+      base.AfterSolveInstance();
+    }
+
     /// <summary>
     /// This is the method that actually does the work.
     /// </summary>
@@ -59,7 +116,26 @@ namespace ScriptSyncGH
     /// to store data in output parameters.</param>
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+
+      Rhino.RhinoApp.WriteLine(">>>>>>>>>>SolveInstance");
+      string testPrint = "";
+      DA.GetData(0, ref testPrint);
+      Rhino.RhinoApp.WriteLine(testPrint);
+
+
+      // add source to the script input parameter
+      // check the "Input as Path" menu item for the script input parameter
+      // DA.SetData(0, _scriptSyncPath);
+
+      // Params.Input[0].AddSource(_scriptSyncPath);
+
       base.SolveInstance(DA);
+    }
+
+    protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+    {
+      // Call empty to avoid Shift+LeftClick menu
+      // base.AppendAdditionalComponentMenuItems(menu);
     }
 
     /// <summary>

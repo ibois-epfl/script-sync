@@ -1,0 +1,1 @@
+This action was implemented from the [compass componentizer](https://github.com/compas-dev/compas-actions.ghpython_components/tree/main). We retain no credit for the code, and only modified it to work with our own repository.
