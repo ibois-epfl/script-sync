@@ -44,7 +44,7 @@ All contributions are welcome. Have a look at the [contribution guidelines](CONT
 There are a lot of plug-ins that allow to run Python in Rhino. Among them, [CodeListener](https://github.com/ccc159/CodeListener) was working until RhinoV8 and it was a source of inspiration for this project. This is a simplified version, but it can run `C#` and both `IronPython` and `CPython` in RhinoV8.
 
 ## Citation
-This project is part of the research activities of the [IBOIS lab](https://www.epfl.ch/labs/ibois/) at EPFL. It was developed by [Andrea Settimi](https://github.com/9and3).
+This project is part of the research activities of the [IBOIS lab](https://www.epfl.ch/labs/ibois/) at EPFL. It was developed and currently maintained by [Andrea Settimi](https://github.com/9and3).
 
 ## For more information
 
