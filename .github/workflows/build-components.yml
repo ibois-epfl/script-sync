@@ -12,67 +12,16 @@ jobs:
       - name: Install Python and pythonnet
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.9.10'
       - name: Install pythonnet
         run: |
           pip install pythonnet
       - uses: ./.github/actions/ghpython-components
         with:
-          source: components
-          target: build
-      # upload them as artifacts:
+          source: GH\PyGH\components
+          target: GH\PyGH\build
+      
       - uses: actions/upload-artifact@v2
         with:
           name: ghuser-components
-          path: build
-
-  build_release_on_tag:
-    needs: build_ghuser_components
-    runs-on: windows-latest
-    name: Build release
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - uses: actions/checkout@v2
-      - uses: NuGet/setup-nuget@v1.0.5
-
-      # create a new release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      # download the artifacts from the previous job
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: ghuser-components
-          path: build/ghuser-components
-
-      # verify the artifacts are downloaded
-      - name: List artifacts
-        run: |
-          ls -l build/ghuser-components
-
-      # zip the artifacts
-      - name: Zip artifacts
-        run: |
-          cd build
-          7z a ghuser-components.zip ghuser-components
-
-      # upload the downloaded artifacts as release assets
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/ghuser-components.zip
-          asset_name: ghuser-components
-          asset_content_type: application/zip
+          path: GH\PyGH\build

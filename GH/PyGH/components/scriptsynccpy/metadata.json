@@ -1,0 +1,58 @@
+{
+    "name": "script-sync cpython",
+    "nickname": "scsy-cpy",
+    "category": "script-sync",
+    "subcategory": "vscode",
+    "description": "This allows to run the current active cpython file from vscode to grasshopper.",
+    "exposure": 4,
+    "instanceGuid": "afa031c5-0df6-4ded-aaa0-6a69bdeedce2",
+    "ghpython": {
+        "marshalGuids": true,
+        "iconDisplay": 2,
+        "inputParameters": [
+            {
+                "name": "X",
+                "nickname": "x",
+                "description": "The X value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "reverse": false,
+                "simplify": false
+            },
+            {
+                "name": "Y",
+                "nickname": "y",
+                "description": "The Y value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "simplify": false
+            }
+        ],
+        "outputParameters": [
+            {
+                "name": "out",
+                "nickname": "out",
+                "description": "Out redirection of component's console.",
+                "optional": false,
+                "sourceCount": 0
+            },
+            {
+                "name": "a",
+                "nickname": "a",
+                "description": "Generic output of the component.",
+                "optional": false,
+                "sourceCount": 0
+            }
+        ]
+    }
+}

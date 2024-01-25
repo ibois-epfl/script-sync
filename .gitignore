@@ -23,3 +23,9 @@ temp/
 *.rhp
 *.rui
 *.3dmbak
+
+######################
+# General
+######################
+# get rid of all build folders
+build/
