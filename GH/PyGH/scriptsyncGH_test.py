@@ -9,13 +9,11 @@ import time
 
 import threading
 
-from System.Threading import Thread
-from functools import partial
+# from System.Threading import Thread
+# from functools import partial
 
 import rhinoscriptsyntax as rs
 
-# Create a lock
-path_lock = threading.Lock()
 
 def update_component():
     """ Fire the recalculation of the component solution. """
@@ -24,7 +22,7 @@ def update_component():
     # # expire the component
     ghenv.Component.ExpireSolution(True)
 
-def check_file_change(path):
+def check_file_change(path, path_lock):
     """
         Check if the file has changed on disk.
         
@@ -32,16 +30,15 @@ def check_file_change(path):
         :returns: True if the file has changed, False otherwise.
     """
     with path_lock:
-        # last_modified = os.path.getmtime(path)
+        last_modified = os.path.getmtime(path)
         while True:
             System.Threading.Thread.Sleep(1000)
-            action = System.Action(update_component)
-            Rhino.RhinoApp.InvokeOnUiThread(action)
-            # current_modified = os.path.getmtime(path)
+            
+            current_modified = os.path.getmtime(path)
             if current_modified != last_modified:
                 last_modified = current_modified
-                
-                # update_component()
+                action = System.Action(update_component)
+                Rhino.RhinoApp.InvokeOnUiThread(action)
                 break
     return
 
@@ -82,6 +79,7 @@ class ScriptSyncCPy(component):
 
         self.thread = None
         self.path = None
+        self.path_lock = threading.Lock()
 
         # print(f'Number of scriptsync_threads: {len(threading.enumerate())}')
     
@@ -104,7 +102,7 @@ class ScriptSyncCPy(component):
         # self.thread = Thread(partial(check_file_change, self.path))
         # self.thread.Start()
 
-        thread = threading.Thread(target=check_file_change, args=(self.path,))
+        thread = threading.Thread(target=check_file_change, args=(self.path, self.path_lock))
         thread.start()
 
 
