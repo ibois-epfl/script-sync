@@ -40,9 +40,9 @@
         ],
         "outputParameters": [
             {
-                "name": "out",
-                "nickname": "out",
-                "description": "The execution information, as output and error streams",
+                "name": "stdout",
+                "nickname": "stdout",
+                "description": "The redirected standard output of the component scriptsync.",
                 "optional": false,
                 "sourceCount": 0
             },

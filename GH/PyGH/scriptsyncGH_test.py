@@ -88,10 +88,13 @@ class ScriptSyncCPy(component):
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
                 locals["stdout"] = output.getvalue()
+                sys.stdout = sys.__stdout__
             return locals
         except Exception as e:
-            err_msg = str(e)
-            return e
+            err_msg = f"script-sync::Error in the code: {str(e)}"
+            # TODO: here we need to send back the erro mesage to vscode
+            sys.stdout = sys.__stdout__
+            raise Exception(err_msg)
 
     def RunScript(self, x, y):
         """ This method is called whenever the component has to be recalculated. """
@@ -113,12 +116,6 @@ class ScriptSyncCPy(component):
 
         # run the script
         res = self.safe_exec(self.path, globals(), locals())
-        if isinstance(res, Exception):
-            err_msg = f"script-sync::Error in the code: {res}"
-            print(err_msg)
-            raise Exception(err_msg)
-
-
 
         # get the output variables defined in the script
         outparam = ghenv.Component.Params.Output

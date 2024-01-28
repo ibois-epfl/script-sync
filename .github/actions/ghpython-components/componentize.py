@@ -269,9 +269,6 @@ def create_ghuser_component(source, target, version=None, prefix=None):
         )
     params.SetInt32("OutputCount", len(outputParam))
     for i, _po in enumerate(outputParam):
-        if i == 0:
-            params.SetGuid("OutputId", i, System.Guid.Parse("3ede854e-c753-40eb-84cb-b48008f14fd4"))  # out parameters on FIXME: whatch xml to see how it works
-            continue
         params.SetGuid(
             "OutputId", i, System.Guid.Parse("08908df5-fa14-4982-9ab2-1aa0927566aa")
         )
@@ -304,15 +301,6 @@ def create_ghuser_component(source, target, version=None, prefix=None):
             pi_chunk.SetInt32("Mapping", 2)
 
     for i, po in enumerate(outputParam):
-        # if i == 0:
-        #     output_instance_guid = System.Guid.NewGuid()
-        #     po_chunk = params.CreateChunk("OutputParam", i)
-        #     po_chunk.SetString("Name", po["name"])
-        #     po_chunk.SetString("NickName", po.get("nickname") or po["name"])
-        #     po_chunk.SetString("Description", po.get("description"))
-        #     po_chunk.SetInt32("SourceCount", po.get("sourceCount", 0))
-        #     po_chunk.SetGuid("InstanceGuid", output_instance_guid)
-        #     continue
         output_instance_guid = System.Guid.NewGuid()
         po_chunk = params.CreateChunk("OutputParam", i)
         po_chunk.SetString("Name", po["name"])
