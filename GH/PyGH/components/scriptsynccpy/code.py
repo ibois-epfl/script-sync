@@ -96,7 +96,7 @@ class ScriptSyncCPy(component):
             sys.stdout = sys.__stdout__
             raise Exception(err_msg)
 
-    def RunScript(self, x, y):
+    def RunScript(self):
         """ This method is called whenever the component has to be recalculated. """
         # check the file is path
         self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
