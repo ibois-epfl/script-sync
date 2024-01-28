@@ -70,7 +70,7 @@ class ScriptSyncError(Exception):
 class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
-        self._var_output = ["None"]
+        self._var_output = []
         ghenv.Component.Message = "ScriptSyncCPy"
 
         # self.thread = None
@@ -131,9 +131,11 @@ class ScriptSyncCPy(component):
         # get the output variables defined in the script
         outparam = ghenv.Component.Params.Output
         outparam_names = [p.NickName for p in outparam if p.NickName != "out"]
-        for k, v in res.items():
-            if k in outparam_names:
-                self._var_output.append(v)
+        for outp in outparam_names:
+            if outp in res.keys():
+                self._var_output.append(res[outp])
+            else:
+                self._var_output.append(None)
 
         return self._var_output
 
@@ -143,18 +145,22 @@ class ScriptSyncCPy(component):
             its calculation. It is used to load the GHComponent outputs
             with the values created in the script.
         """
-        outparam = ghenv.Component.Params.Output
-        outparam_names = [p.NickName for p in outparam if p.NickName != "out"]
+        outparam = [p for p in ghenv.Component.Params.Output if p.NickName != "out"]
+        outparam_names = [p.NickName for p in outparam]
+        
         print(outparam_names)
-        print(self._var_output.keys())
-        print(self._var_output.values())
+        print(self._var_output)
+        # print(self._var_output.keys())
+        # print(self._var_output.values())
 
-        var_output_dict = dict(zip([p.NickName for p in outparam if p.NickName != "out"], self._var_output))
-        # print(var_output_dict)
+        # var_output_dict = dict(zip([p.NickName for p in outparam if p.NickName != "out"], self._var_output))
+        # # print(var_output_dict)
         
         for idx, outp in enumerate(outparam):
-            if outp.NickName != "out":
-                ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                value = var_output_dict.get(outp.NickName, "None")
-                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, value)
-        self._var_output = ["None"]
+            # if outp.NickName != "out":
+            ghenv.Component.Params.Output[idx+1].VolatileData.Clear()
+            ghenv.Component.Params.Output[idx+1].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+        
+        
+        
+        self._var_output.clear()
