@@ -9,38 +9,49 @@ import time
 
 import threading
 
-# from System.Threading import Thread
-# from functools import partial
-
 import rhinoscriptsyntax as rs
 
 
-def update_component():
-    """ Fire the recalculation of the component solution. """
-    # clear the output
-    ghenv.Component.Params.Output[0].ClearData()
-    # # expire the component
-    ghenv.Component.ExpireSolution(True)
+class ScriptSyncThread(threading.Thread):
+    def __init__(self, path, path_lock, name):
+        super().__init__(name=name, daemon=False)
+        self.path = path
+        self.path_lock = path_lock
+        self.component_on_canvas = True
 
-def check_file_change(path, path_lock):
-    """
-        Check if the file has changed on disk.
-        
-        :param path: The path of the file to check.
-        :returns: True if the file has changed, False otherwise.
-    """
-    with path_lock:
-        last_modified = os.path.getmtime(path)
-        while True:
-            System.Threading.Thread.Sleep(1000)
+    def run(self):
+        self.check_file_change(self.path, self.path_lock)
+
+    def check_if_component_on_canvas(self):
+        """ Check if the component is on canvas. """
+        if ghenv.Component.OnPingDocument() is None:
+            self.component_on_canvas = False
+
+    def update_component(self):
+        """ Fire the recalculation of the component solution. """
+        ghenv.Component.Params.Output[0].ClearData()  # clear the output
+        ghenv.Component.ExpireSolution(True)  # expire the component
+
+    def check_file_change(self, path, path_lock):
+        """
+            Check if the file has changed on disk.
             
-            current_modified = os.path.getmtime(path)
-            if current_modified != last_modified:
-                last_modified = current_modified
-                action = System.Action(update_component)
-                Rhino.RhinoApp.InvokeOnUiThread(action)
-                break
-    return
+            :param path: The path of the file to check.
+        """
+        with path_lock:
+            last_modified = os.path.getmtime(path)
+            while self.component_on_canvas:
+                System.Threading.Thread.Sleep(1000)
+                Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.check_if_component_on_canvas))
+                
+                if not self.component_on_canvas:
+                    print(f"script-sync::Thread {self.name} aborted")
+                    break
+                
+                current_modified = os.path.getmtime(path)
+                if current_modified != last_modified:
+                    last_modified = current_modified
+                    Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.update_component))
 
 
 def safe_exec(path, globals, locals):
@@ -77,12 +88,14 @@ class ScriptSyncCPy(component):
         self._var_output = ["None"]
         ghenv.Component.Message = "ScriptSyncCPy"
 
-        self.thread = None
+        # self.thread = None
+        self.thread_name = None
         self.path = None
         self.path_lock = threading.Lock()
 
-        # print(f'Number of scriptsync_threads: {len(threading.enumerate())}')
-    
+        # FIXME: output cannot be set by componentizer, redirect the output of python to
+        # a custom string output
+
     def RunScript(self, x, y):
         """ This method is called whenever the component has to be recalculated. """
         # check the file is path
@@ -93,17 +106,28 @@ class ScriptSyncCPy(component):
 
         print(f"script-sync::x value: {x}")
 
-        # share the self.path resource among threads
-        
 
-        # # non-blocking thread
-        # action = partial(check_file_change, self.path)
-        # Rhino.RhinoApp.InvokeOnUiThread(action)
-        # self.thread = Thread(partial(check_file_change, self.path))
-        # self.thread.Start()
 
-        thread = threading.Thread(target=check_file_change, args=(self.path, self.path_lock))
-        thread.start()
+        # # FIXME: the thread is created new every time the component is executed, it should not be like this
+        # get the guid instance of the component
+        self.thread_name : str = f"script-sync-thread::{ghenv.Component.InstanceGuid}"
+        if self.thread_name not in [t.name for t in threading.enumerate()]:
+            # # the thread already exists, we need to abort it
+            # for t in threading.enumerate():
+            #     if t.name == self.thread_name:
+            #         t.abort()
+            #         print(f"script-sync::Thread {self.thread_name} aborted")
+            #         break
+            ScriptSyncThread(self.path, self.path_lock, self.thread_name).start()
+            # thread = threading.Thread(target=check_file_change,
+            #                         args=(self.path, self.path_lock),
+            #                         daemon=False,
+            #                         name=self.thread_name)
+            # thread.start()
+        print(f'Number of scriptsync_threads: {len(threading.enumerate())}')  #<<<
+        for t in threading.enumerate():
+            print(t.name)  #<<<
+
 
 
 
@@ -128,13 +152,15 @@ class ScriptSyncCPy(component):
             if k in outparam_names:
                 self._var_output.append(v)
 
+
         return self._var_output
 
-    # FIXME: problem with indexing  return
+    # FIXME: problem with indexing return
     def AfterRunScript(self):
         outparam = ghenv.Component.Params.Output
         for idx, outp in enumerate(outparam):
             if outp.NickName != "out":
+                # if outp.NickName == self._var_output[idx]:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output = ["None"]
