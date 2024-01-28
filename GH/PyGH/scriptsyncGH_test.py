@@ -7,6 +7,9 @@ import sys
 import os
 import time
 
+import contextlib
+import io
+
 import threading
 
 import rhinoscriptsyntax as rs
@@ -69,12 +72,10 @@ class ScriptSyncCPy(component):
         self.path = None
         self.path_lock = threading.Lock()
 
-        # FIXME: output cannot be set by componentizer, redirect the output of python to
-        # a custom string output
-
     def safe_exec(self, path, globals, locals):
         """
-            Execute Python3 code safely.
+            Execute Python3 code safely. It redirects the output of the code
+            to a string buffer 'stdout' to output to the GH component param.
             
             :param path: The path of the file to execute.
             :param globals: The globals dictionary.
@@ -83,8 +84,11 @@ class ScriptSyncCPy(component):
         try:
             with open(path, 'r') as f:
                 code = compile(f.read(), path, 'exec')
-                exec(code, globals, locals)
-            return locals  # return the locals dictionary
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    exec(code, globals, locals)
+                locals["stdout"] = output.getvalue()
+            return locals
         except Exception as e:
             err_msg = str(e)
             return e
@@ -114,16 +118,17 @@ class ScriptSyncCPy(component):
             print(err_msg)
             raise Exception(err_msg)
 
+
+
         # get the output variables defined in the script
         outparam = ghenv.Component.Params.Output
-        outparam_names = [p.NickName for p in outparam if p.NickName != "out"]
+        outparam_names = [p.NickName for p in outparam]
         for outp in outparam_names:
             if outp in res.keys():
                 self._var_output.append(res[outp])
             else:
                 self._var_output.append(None)
 
-        return self._var_output
 
     def AfterRunScript(self):
         """
@@ -131,10 +136,10 @@ class ScriptSyncCPy(component):
             its calculation. It is used to load the GHComponent outputs
             with the values created in the script.
         """
-        outparam = [p for p in ghenv.Component.Params.Output if p.NickName != "out"]
+        outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
         
         for idx, outp in enumerate(outparam):
-            ghenv.Component.Params.Output[idx+1].VolatileData.Clear()
-            ghenv.Component.Params.Output[idx+1].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+            ghenv.Component.Params.Output[idx].VolatileData.Clear()
+            ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output.clear()
