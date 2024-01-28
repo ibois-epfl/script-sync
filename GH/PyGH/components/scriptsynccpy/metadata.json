@@ -9,6 +9,35 @@
     "ghpython": {
         "marshalGuids": true,
         "iconDisplay": 2,
+        "inputParameters": [
+            {
+                "name": "X",
+                "nickname": "x",
+                "description": "The X value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "reverse": false,
+                "simplify": false
+            },
+            {
+                "name": "Y",
+                "nickname": "y",
+                "description": "The Y value of the component.",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "float",
+                "simplify": false
+            }
+        ],
         "outputParameters": [
             {
                 "name": "stdout",
