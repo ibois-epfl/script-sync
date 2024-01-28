@@ -37,8 +37,21 @@ def check_file_change(path):
             break
     return
 
-def safe_exec(path, globals, locals):
-    """
+
+
+
+
+# class ScriptSyncCPy(gh.Kernel.GH_ScriptInstance):
+class ScriptSyncCPy(component):
+
+    def __init__(self):
+        super(ScriptSyncCPy, self).__init__()
+        self._var_output = ["None"]
+        ghenv.Component.Message = "ScriptSyncCPy"
+        self.thread = None
+
+    def safe_exec(self, path, globals, locals):
+        """
         Execute Python3 code safely.
         
         :param path: The path of the file to execute.
@@ -52,17 +65,8 @@ def safe_exec(path, globals, locals):
         return locals  # return the locals dictionary
     except Exception as e:
         err_msg = str(e)
+        self.thread.Abort()
         return e
-
-
-
-# class ScriptSyncCPy(gh.Kernel.GH_ScriptInstance):
-class ScriptSyncCPy(component):
-
-    def __init__(self):
-        super(ScriptSyncCPy, self).__init__()
-        self._var_output = ["None"]
-        ghenv.Component.Message = "ScriptSyncCPy"
 
     def RunScript(self, path, x, y):
         """ This method is called whenever the component has to be recalculated. """
@@ -73,8 +77,8 @@ class ScriptSyncCPy(component):
         print(f"script-sync::x value: {x}")
 
         # non-blocking thread
-        thread = Thread(partial(check_file_change, path))
-        thread.Start()
+        self.thread = Thread(partial(check_file_change, path))
+        self.thread.Start()
 
         # we need to add the path of the modules
         path_dir = path.split("\\")
@@ -82,7 +86,7 @@ class ScriptSyncCPy(component):
         sys.path.insert(0, path_dir)
 
         # run the script
-        res = safe_exec(path, globals(), locals())
+        res = self.safe_exec(path, globals(), locals())
         if isinstance(res, Exception):
             err_msg = f"script-sync::Error in the code: {res}"
             print(err_msg)

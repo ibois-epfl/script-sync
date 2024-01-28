@@ -42,14 +42,14 @@
             {
                 "name": "out",
                 "nickname": "out",
-                "description": "Out redirection of component's console.",
+                "description": "The execution information, as output and error streams",
                 "optional": false,
                 "sourceCount": 0
             },
             {
                 "name": "a",
                 "nickname": "a",
-                "description": "Generic output of the component.",
+                "description": "Generic output of the component",
                 "optional": false,
                 "sourceCount": 0
             }

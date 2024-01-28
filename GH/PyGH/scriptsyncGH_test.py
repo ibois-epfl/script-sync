@@ -109,18 +109,8 @@ class ScriptSyncCPy(component):
         # get the guid instance of the component
         self.thread_name : str = f"script-sync-thread::{ghenv.Component.InstanceGuid}"
         if self.thread_name not in [t.name for t in threading.enumerate()]:
-            # # the thread already exists, we need to abort it
-            # for t in threading.enumerate():
-            #     if t.name == self.thread_name:
-            #         t.abort()
-            #         print(f"script-sync::Thread {self.thread_name} aborted")
-            #         break
             ScriptSyncThread(self.path, self.path_lock, self.thread_name).start()
-            # thread = threading.Thread(target=check_file_change,
-            #                         args=(self.path, self.path_lock),
-            #                         daemon=False,
-            #                         name=self.thread_name)
-            # thread.start()
+        
         print(f'Number of scriptsync_threads: {len(threading.enumerate())}')  #<<<
         for t in threading.enumerate():
             print(t.name)  #<<<
@@ -154,7 +144,14 @@ class ScriptSyncCPy(component):
             with the values created in the script.
         """
         outparam = ghenv.Component.Params.Output
+        outparam_names = [p.NickName for p in outparam if p.NickName != "out"]
+        print(outparam_names)
+        print(self._var_output.keys())
+        print(self._var_output.values())
+
         var_output_dict = dict(zip([p.NickName for p in outparam if p.NickName != "out"], self._var_output))
+        # print(var_output_dict)
+        
         for idx, outp in enumerate(outparam):
             if outp.NickName != "out":
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()

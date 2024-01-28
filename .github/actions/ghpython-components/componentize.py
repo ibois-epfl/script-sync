@@ -304,6 +304,15 @@ def create_ghuser_component(source, target, version=None, prefix=None):
             pi_chunk.SetInt32("Mapping", 2)
 
     for i, po in enumerate(outputParam):
+        # if i == 0:
+        #     output_instance_guid = System.Guid.NewGuid()
+        #     po_chunk = params.CreateChunk("OutputParam", i)
+        #     po_chunk.SetString("Name", po["name"])
+        #     po_chunk.SetString("NickName", po.get("nickname") or po["name"])
+        #     po_chunk.SetString("Description", po.get("description"))
+        #     po_chunk.SetInt32("SourceCount", po.get("sourceCount", 0))
+        #     po_chunk.SetGuid("InstanceGuid", output_instance_guid)
+        #     continue
         output_instance_guid = System.Guid.NewGuid()
         po_chunk = params.CreateChunk("OutputParam", i)
         po_chunk.SetString("Name", po["name"])
