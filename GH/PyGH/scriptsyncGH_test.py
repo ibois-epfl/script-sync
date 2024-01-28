@@ -20,6 +20,7 @@ class ScriptSyncThread(threading.Thread):
         self.component_on_canvas = True
 
     def run(self):
+        """ Run the thread. """
         self.check_file_change(self.path, self.path_lock)
 
     def check_if_component_on_canvas(self):
@@ -37,6 +38,7 @@ class ScriptSyncThread(threading.Thread):
             Check if the file has changed on disk.
             
             :param path: The path of the file to check.
+            :param path_lock: The lock for the path.
         """
         with path_lock:
             last_modified = os.path.getmtime(path)
@@ -53,23 +55,6 @@ class ScriptSyncThread(threading.Thread):
                     last_modified = current_modified
                     Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.update_component))
 
-
-def safe_exec(path, globals, locals):
-    """
-        Execute Python3 code safely.
-        
-        :param path: The path of the file to execute.
-        :param globals: The globals dictionary.
-        :param locals: The locals dictionary.
-    """
-    try:
-        with open(path, 'r') as f:
-            code = compile(f.read(), path, 'exec')
-            exec(code, globals, locals)
-        return locals  # return the locals dictionary
-    except Exception as e:
-        err_msg = str(e)
-        return e
 
 # define a custom Exception class
 class ScriptSyncError(Exception):
@@ -96,6 +81,23 @@ class ScriptSyncCPy(component):
         # FIXME: output cannot be set by componentizer, redirect the output of python to
         # a custom string output
 
+    def safe_exec(self, path, globals, locals):
+        """
+            Execute Python3 code safely.
+            
+            :param path: The path of the file to execute.
+            :param globals: The globals dictionary.
+            :param locals: The locals dictionary.
+        """
+        try:
+            with open(path, 'r') as f:
+                code = compile(f.read(), path, 'exec')
+                exec(code, globals, locals)
+            return locals  # return the locals dictionary
+        except Exception as e:
+            err_msg = str(e)
+            return e
+
     def RunScript(self, x, y):
         """ This method is called whenever the component has to be recalculated. """
         # check the file is path
@@ -104,11 +106,6 @@ class ScriptSyncCPy(component):
         if not os.path.exists(self.path):
             raise Exception("script-sync::File does not exist")
 
-        print(f"script-sync::x value: {x}")
-
-
-
-        # # FIXME: the thread is created new every time the component is executed, it should not be like this
         # get the guid instance of the component
         self.thread_name : str = f"script-sync-thread::{ghenv.Component.InstanceGuid}"
         if self.thread_name not in [t.name for t in threading.enumerate()]:
@@ -128,17 +125,13 @@ class ScriptSyncCPy(component):
         for t in threading.enumerate():
             print(t.name)  #<<<
 
-
-
-
-
         # we need to add the path of the modules
         path_dir = self.path.split("\\")
         path_dir = "\\".join(path_dir[:-1])
         sys.path.insert(0, path_dir)
 
         # run the script
-        res = safe_exec(self.path, globals(), locals())
+        res = self.safe_exec(self.path, globals(), locals())
         if isinstance(res, Exception):
             err_msg = f"script-sync::Error in the code: {res}"
             print(err_msg)
@@ -152,15 +145,19 @@ class ScriptSyncCPy(component):
             if k in outparam_names:
                 self._var_output.append(v)
 
-
         return self._var_output
 
-    # FIXME: problem with indexing return
     def AfterRunScript(self):
+        """
+            This method is called as soon as the component has finished
+            its calculation. It is used to load the GHComponent outputs
+            with the values created in the script.
+        """
         outparam = ghenv.Component.Params.Output
+        var_output_dict = dict(zip([p.NickName for p in outparam if p.NickName != "out"], self._var_output))
         for idx, outp in enumerate(outparam):
             if outp.NickName != "out":
-                # if outp.NickName == self._var_output[idx]:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+                value = var_output_dict.get(outp.NickName, "None")
+                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, value)
         self._var_output = ["None"]
