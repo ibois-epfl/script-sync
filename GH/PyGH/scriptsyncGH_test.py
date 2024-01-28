@@ -13,7 +13,10 @@ import rhinoscriptsyntax as rs
 
 
 class ScriptSyncThread(threading.Thread):
-    def __init__(self, path, path_lock, name):
+    def __init__(self,
+                path : str,
+                path_lock : threading.Lock,
+                name : str):
         super().__init__(name=name, daemon=False)
         self.path = path
         self.path_lock = path_lock
@@ -33,7 +36,7 @@ class ScriptSyncThread(threading.Thread):
         ghenv.Component.Params.Output[0].ClearData()  # clear the output
         ghenv.Component.ExpireSolution(True)  # expire the component
 
-    def check_file_change(self, path, path_lock):
+    def check_file_change(self, path : str, path_lock : threading.Lock) -> None:
         """
             Check if the file has changed on disk.
             
@@ -56,24 +59,12 @@ class ScriptSyncThread(threading.Thread):
                     Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.update_component))
 
 
-# define a custom Exception class
-class ScriptSyncError(Exception):
-    def __init__(self, msg, thread):
-        self.msg = msg
-        # release all the resources
-        thread.Abort()
-
-    def __str__(self):
-        return self.msg
-
-
 class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
         self._var_output = []
         ghenv.Component.Message = "ScriptSyncCPy"
 
-        # self.thread = None
         self.thread_name = None
         self.path = None
         self.path_lock = threading.Lock()
@@ -111,10 +102,6 @@ class ScriptSyncCPy(component):
         if self.thread_name not in [t.name for t in threading.enumerate()]:
             ScriptSyncThread(self.path, self.path_lock, self.thread_name).start()
         
-        print(f'Number of scriptsync_threads: {len(threading.enumerate())}')  #<<<
-        for t in threading.enumerate():
-            print(t.name)  #<<<
-
         # we need to add the path of the modules
         path_dir = self.path.split("\\")
         path_dir = "\\".join(path_dir[:-1])
@@ -126,7 +113,6 @@ class ScriptSyncCPy(component):
             err_msg = f"script-sync::Error in the code: {res}"
             print(err_msg)
             raise Exception(err_msg)
-            # raise ScriptSyncError(err_msg, self.thread)
 
         # get the output variables defined in the script
         outparam = ghenv.Component.Params.Output
@@ -148,19 +134,7 @@ class ScriptSyncCPy(component):
         outparam = [p for p in ghenv.Component.Params.Output if p.NickName != "out"]
         outparam_names = [p.NickName for p in outparam]
         
-        print(outparam_names)
-        print(self._var_output)
-        # print(self._var_output.keys())
-        # print(self._var_output.values())
-
-        # var_output_dict = dict(zip([p.NickName for p in outparam if p.NickName != "out"], self._var_output))
-        # # print(var_output_dict)
-        
         for idx, outp in enumerate(outparam):
-            # if outp.NickName != "out":
             ghenv.Component.Params.Output[idx+1].VolatileData.Clear()
             ghenv.Component.Params.Output[idx+1].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
-        
-        
-        
         self._var_output.clear()

@@ -1,4 +1,4 @@
-name: build-components
+name: ghuser-components
 on: [push]
 
 jobs:
