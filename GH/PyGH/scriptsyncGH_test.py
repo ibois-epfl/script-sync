@@ -1,11 +1,14 @@
 from ghpythonlib.componentbase import executingcomponent as component
 
 import System
+import System.Drawing
+import System.Windows.Forms
 import Rhino
 import Grasshopper as gh
 import sys
 import os
 import time
+
 
 import contextlib
 import io
@@ -96,7 +99,7 @@ class ScriptSyncCPy(component):
             sys.stdout = sys.__stdout__
             raise Exception(err_msg)
 
-    def RunScript(self, x, y):
+    def RunScript(self):
         """ This method is called whenever the component has to be recalculated. """
         # check the file is path
         self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
@@ -125,6 +128,42 @@ class ScriptSyncCPy(component):
                 self._var_output.append(res[outp])
             else:
                 self._var_output.append(None)
+    
+
+
+
+
+    def AppendMenuItems(self, menu):
+        """
+            This method is called by Grasshopper when the user right-clicks
+            on the component icon. By default it adds two items to the menu
+            that allow users to save and load a preset.
+            
+            :param menu: The ToolStripDropDown to add items to.
+        """
+        # menu.Items.Add("Save preset", None, self.Menu_SavePresetClicked)
+        # menu.Items.Add("Load preset", None, self.Menu_LoadPresetClicked)
+        
+        # create a menu item that open a file explorer
+        ghenv.Component.MenuItems(self, menu)
+        image = None
+        
+
+
+    def Menu_OpenFileClicked(self, sender, e):
+        """ Open a file explorer to select a file. """
+        # create a file dialog
+        dialog = System.Windows.Forms.OpenFileDialog()
+        dialog.Filter = "Python files (*.py)|*.py"
+        dialog.Title = "Select a Python file"
+        dialog.InitialDirectory = os.path.dirname(__file__)
+        if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
+            self.path = dialog.FileName
+            self.thread_name : str = f"script-sync-thread::{ghenv.Component.InstanceGuid}"
+            if self.thread_name not in [t.name for t in threading.enumerate()]:
+                ScriptSyncThread(self.path, self.path_lock, self.thread_name).start()
+            print(f"script-sync::File selected: {self.path}")
+
 
 
     def AfterRunScript(self):
