@@ -9,13 +9,16 @@ import sys
 import os
 import time
 
-
 import contextlib
 import io
 
+import socket
 import threading
 
 import rhinoscriptsyntax as rs
+
+# TODO: create an abc class for threads with utility methods
+# and create a class for a new TCPThread
 
 
 class ScriptSyncThread(threading.Thread):
@@ -71,9 +74,30 @@ class ScriptSyncCPy(component):
         self._var_output = []
         ghenv.Component.Message = "ScriptSyncCPy"
 
+        self.is_success = False
+
+        self.vscode_server_ip = "127.0.0.1"
+        self.vscode_server_port = 58260
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         self.thread_name = None
         self.path = None
         self.path_lock = threading.Lock()
+
+    # TODO: this should be implmeneted in a separate thread to
+    # continusly check if vscode is started, if not just raise a warning
+    def connect_to_vscode_server(self):
+        """ Connect to the VSCode server. """
+        try:
+            self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
+        except ConnectionRefusedError:
+            print("script-sync::Connection refused by the vscode-server")
+            return False
+        except Exception as e:
+            print(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+            return False
+        self.client_socket.send("Hello vscode from GHcomponent!".encode())
+        return True
 
     def safe_exec(self, path, globals, locals):
         """
@@ -101,6 +125,12 @@ class ScriptSyncCPy(component):
 
     def RunScript(self):
         """ This method is called whenever the component has to be recalculated. """
+        self.is_success = False
+        
+        # connect to the vscode server
+        if not self.connect_to_vscode_server():
+            raise Exception("script-sync::Error connecting to the vscode-server")
+        
         # check the file is path
         self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
         
@@ -129,41 +159,8 @@ class ScriptSyncCPy(component):
             else:
                 self._var_output.append(None)
     
-
-
-
-
-    def AppendMenuItems(self, menu):
-        """
-            This method is called by Grasshopper when the user right-clicks
-            on the component icon. By default it adds two items to the menu
-            that allow users to save and load a preset.
-            
-            :param menu: The ToolStripDropDown to add items to.
-        """
-        # menu.Items.Add("Save preset", None, self.Menu_SavePresetClicked)
-        # menu.Items.Add("Load preset", None, self.Menu_LoadPresetClicked)
-        
-        # create a menu item that open a file explorer
-        ghenv.Component.MenuItems(self, menu)
-        image = None
-        
-
-
-    def Menu_OpenFileClicked(self, sender, e):
-        """ Open a file explorer to select a file. """
-        # create a file dialog
-        dialog = System.Windows.Forms.OpenFileDialog()
-        dialog.Filter = "Python files (*.py)|*.py"
-        dialog.Title = "Select a Python file"
-        dialog.InitialDirectory = os.path.dirname(__file__)
-        if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-            self.path = dialog.FileName
-            self.thread_name : str = f"script-sync-thread::{ghenv.Component.InstanceGuid}"
-            if self.thread_name not in [t.name for t in threading.enumerate()]:
-                ScriptSyncThread(self.path, self.path_lock, self.thread_name).start()
-            print(f"script-sync::File selected: {self.path}")
-
+        self.is_success = True
+    # TODO: add a menu item to select the file to run
 
 
     def AfterRunScript(self):
@@ -172,6 +169,8 @@ class ScriptSyncCPy(component):
             its calculation. It is used to load the GHComponent outputs
             with the values created in the script.
         """
+        if not self.is_success:
+            return
         outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
         

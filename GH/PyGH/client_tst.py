@@ -18,6 +18,9 @@ def start_client():
             # Send a message to the server
             s.send("Hello server!".encode())
 
+            # print the received message
+            print(s.recv(1024).decode())
+
             # Wait for 2 seconds
             time.sleep(2)
 

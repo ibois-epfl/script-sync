@@ -1,16 +1,20 @@
 import socket
 import threading
+import os
 
 def handle_client(client_socket):
-    while True:
-        # Receive data from the client
-        message = client_socket.recv(1024).decode()
-        if not message:
-            break
-        print(f"Received: {message}")
-
-    # Close the connection with the client
-    client_socket.close()
+    try:
+        while True:
+            # Receive data from the client
+            message = client_socket.recv(1024).decode()
+            if not message:
+                break
+            print(f"Received: {message}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        # Close the connection with the client
+        client_socket.close()
 
 def start_server():
     # Create a socket object
@@ -44,6 +48,7 @@ def start_server():
     except KeyboardInterrupt:
         print("\nServer is stopping due to keyboard interruption...")
         server.close()
+        os._exit(1)
 
 # Start the server
 start_server()
