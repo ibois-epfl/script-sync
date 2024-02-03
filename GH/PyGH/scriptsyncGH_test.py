@@ -22,7 +22,8 @@ import rhinoscriptsyntax as rs
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     def __init__(self, name : str):
         super().__init__(name=name, daemon=False)
-        self.component_on_canvas = True
+        self.component_on_canvas = True  # TODO: need getter and setter
+        # self._component_enabled = True  # TODO: need getter and setter
 
     @abc.abstractmethod
     def run(self):
@@ -34,14 +35,31 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         """ Check if the component is on canvas. """
         if ghenv.Component.OnPingDocument() is None:
             self.component_on_canvas = False
+            return False
+        return True
 
-    # FIXME: this should be integrate the Rhino.RhinoApp.InvokeOnUiThread
-    def update_component(self):
-        """ Fire the recalculation of the component solution. """
-        ghenv.Component.Params.Output[0].ClearData()  # clear the output
-        ghenv.Component.ExpireSolution(True)  # expire the component
+    # def check_if_component_enabled(self):
+    #     """ Check if the component is enabled from thread. """
+    #     def __check_if_component_enabled():
+    #         self._component_enabled = ghenv.Component.Locked
+    #     action = System.Action(__check_if_component_enabled)
+    #     Rhino.RhinoApp.InvokeOnUiThread(action)
 
-    # FIXME: this should be integrate the Rhino.RhinoApp.InvokeOnUiThread
+    def expire_component_solution(self):
+        """ Fire the recalculation of the component solution from thread. """
+        def __expire_component_solution():
+            ghenv.Component.Params.Output[0].ClearData()  # clear the output
+            ghenv.Component.ExpireSolution(True)  # expire the component
+        action = System.Action(__expire_component_solution)
+        Rhino.RhinoApp.InvokeOnUiThread(action)
+
+    def clear_component(self):
+        """ Clear the component from thread. """
+        def __clear_component():
+            ghenv.Component.ClearData()
+        action = System.Action(__clear_component)
+        Rhino.RhinoApp.InvokeOnUiThread(action)
+
     def add_runtime_warning(self, exception : str):
         """ Add a warning tab to the component from main thread. """
         action = System.Action(
@@ -49,36 +67,95 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         )
         Rhino.RhinoApp.InvokeOnUiThread(action)
 
+    def add_runtime_error(self, exception : str):
+        """ Add an error tab to the component from main thread. """
+        action = System.Action(
+            lambda: ghenv.Component.AddRuntimeMessage(RML.Error, exception)
+        )
+        Rhino.RhinoApp.InvokeOnUiThread(action)
+
+    # TODO: not tested
+    def add_runtime_remark(self, exception : str):
+        """ Add a blank tab to the component from main thread. """
+        action = System.Action(
+            lambda: ghenv.Component.AddRuntimeMessage(RML.Remark, exception)
+        )
+        Rhino.RhinoApp.InvokeOnUiThread(action)
+
+    # @property
+    # def component_enabled(self):
+    #     self.check_if_component_enabled()
+    #     return self._component_enabled
+
+
+
 class ClientThread(GHThread):
     def __init__(self,
                 vscode_server_ip : str,
                 vscode_server_port : int,
-                socket : socket.socket,
                 name : str):
         super().__init__(name=name)
+        self.client_socket = None
         self.vscode_server_ip = vscode_server_ip
         self.vscode_server_port = vscode_server_port
         self.client_socket = socket
         self.is_connected = False
+        self.is_force_closed = False
         self.refresh_rate = 2  # seconds
-        self.counter = 0  # TODO: erasse test
 
     def run(self):
-        """ Run the thread. """
-        while self.component_on_canvas:
-            self.check_if_component_on_canvas()
-            if not self.component_on_canvas:
-                print(f"script-sync::Thread {self.name} aborted")
-                break
-            self.connect_to_vscode_server()
-            time.sleep(self.refresh_rate)
-        # self.connect_to_vscode_server()
-        # self.send_to_server(self.client_socket)
-        # self.receive_from_server(self.client_socket)
 
+        """ Run the thread. """
+
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
+        while self.check_if_component_on_canvas():  # FIXME: check also when component is disabled
+            try:
+                if self.is_force_closed:
+                    self.is_force_closed = False
+                    self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                    # break
+
+                if not self.is_connected:
+                    self.connect_to_vscode_server()
+                    self.clear_component()
+                    self.expire_component_solution()
+
+                self.client_socket.send("Hello test!".encode())
+
+                # data = self.client_socket.recv(1024).decode()
+                # if not data:
+                #     break
+                # self.add_runtime_remark(f"script-sync::Received from server: {data}")
+
+                time.sleep(self.refresh_rate)
+                
+
+            except Exception as e:
+                if e.winerror == 10054:  # FIXME: 1. script-sync::Error in the thread: [WinError 10054] An existing connection was forcibly closed by the remote host
+                    # self.add_runtime_error(f"script-sync::Error in the thread: {str(e)}")
+                    self.is_connected = False
+                    self.is_force_closed = True
+                    
+                    # client_socket.close()
+                    # self.clear_component()
+                    # self.expire_component_solution()
+                    # break
+
+        # client_socket.close()
+        return
+
+            # self.send_to_server(self.client_socket)
+            # self.receive_from_server(self.client_socket)
+        
+
+    # FIXME: the problem is that the warntime and cycle breaks at one moment
+    # FIXME: warning are not refreshed or cleaned
     def connect_to_vscode_server(self):
         """ Connect to the VSCode server. """
-        while self.component_on_canvas and not self.is_connected:
+        while self.check_if_component_on_canvas() and not self.is_connected:
             try:
                 # Try to send some data to check if the socket is connected
                 self.client_socket.send(b"")
@@ -90,7 +167,7 @@ class ClientThread(GHThread):
                     self.is_connected = True
                     break
                 except ConnectionRefusedError:
-                    self.add_runtime_warning(f"script-sync::Connection refused by the vscode-server {self.counter}")
+                    self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
                     time.sleep(self.refresh_rate)
                 except ConnectionResetError:
                     self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
@@ -109,11 +186,13 @@ class ClientThread(GHThread):
                 except Exception as e:
                     self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
                     time.sleep(self.refresh_rate)
-            self.counter += 1  # TODO: erase test
         if self.is_connected:
             self.client_socket.send("script-sync::Hello vscode from GHcomponent!".encode())
-        # clear the warnings
-        # self.add_runtime_warning("")
+            # action = System.Action(
+            #     lambda: ghenv.Component.AddRuntimeMessage(RML.Blank, exception)
+            # )
+            # Rhino.RhinoApp.InvokeOnUiThread(action)
+
 
     # def send_to_server(self, client_socket : socket.socket) -> None:
     #     """
@@ -180,7 +259,7 @@ class FileChangedThread(GHThread):
                 current_modified = os.path.getmtime(path)
                 if current_modified != last_modified:
                     last_modified = current_modified
-                    Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.update_component))
+                    self.expire_component_solution()
 
 
 class ScriptSyncCPy(component):
@@ -193,7 +272,6 @@ class ScriptSyncCPy(component):
 
         self.vscode_server_ip = "127.0.0.1"
         self.vscode_server_port = 58260
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.stdout = None
         # self.stderr = None  # TODO: can we redirect the stderr?
         self.stdout_lock = threading.Lock()
@@ -255,7 +333,6 @@ class ScriptSyncCPy(component):
         if self.client_thread_name not in [t.name for t in threading.enumerate()]:
             ClientThread(self.vscode_server_ip,
                         self.vscode_server_port,
-                        self.client_socket,
                         self.client_thread_name).start()
 
         # check the file is path
