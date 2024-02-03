@@ -22,21 +22,25 @@ import rhinoscriptsyntax as rs
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     def __init__(self, name : str):
         super().__init__(name=name, daemon=False)
-        self.component_on_canvas = True  # TODO: need getter and setter
+
+        self.component_on_canvas = True  # FIXME: property not working
         self._component_enabled = True
+        self.lock = threading.Lock()
 
     @abc.abstractmethod
     def run(self):
         """ Run the thread. """
         pass
 
-    # FIXME: this should be integrate the Rhino.RhinoApp.InvokeOnUiThread
+    # FIXME: function contanirization not working
     def check_if_component_on_canvas(self):
         """ Check if the component is on canvas. """
         if ghenv.Component.OnPingDocument() is None:
             self.component_on_canvas = False
             return False
-        return True
+        else:
+            self.component_on_canvas = True
+            return True
 
     def check_if_component_enabled(self):
         """ Check if the component is enabled from thread. """
@@ -90,6 +94,11 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         self.check_if_component_enabled()
         return self._component_enabled
 
+    # @property
+    # def component_on_canvas(self):
+    #     self.check_if_component_on_canvas()
+    #     return self._component_on_canvas
+
 
 
 class ClientThread(GHThread):
@@ -110,7 +119,7 @@ class ClientThread(GHThread):
 
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        while self.check_if_component_on_canvas() and self.component_enabled:  # FIXME: check also when component is disabled
+        while self.component_on_canvas and self.component_enabled:
             try:
                 if not self.is_connected:
                     self.connect_to_vscode_server()
@@ -125,6 +134,8 @@ class ClientThread(GHThread):
                 # self.add_runtime_remark(f"script-sync::Received from server: {data}")
 
                 time.sleep(self.refresh_rate)
+                self.check_if_component_on_canvas()  #test
+
             except Exception as e:
                 if e.winerror == 10054:
                     # Connection was forcibly closed by the vscode-server
@@ -188,7 +199,7 @@ class ClientThread(GHThread):
             
             :param client_socket: The client socket.
         """
-        while self.component_on_canvas:
+        while self.component_on_canvas and self.component_enabled:
             try:
                 data = client_socket.recv(1024).decode()
                 if not data:
@@ -229,7 +240,6 @@ class FileChangedThread(GHThread):
                 if not self.component_on_canvas:
                     print(f"script-sync::Thread {self.name} aborted")
                     break
-                
                 current_modified = os.path.getmtime(path)
                 if current_modified != last_modified:
                     last_modified = current_modified
