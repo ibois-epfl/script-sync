@@ -20,29 +20,32 @@ import threading
 import rhinoscriptsyntax as rs
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
+    """
+        A base class for Grasshopper threads.
+    """
     def __init__(self, name : str):
         super().__init__(name=name, daemon=False)
-
-        self.component_on_canvas = True  # FIXME: property not working
+        self._component_on_canvas = True
         self._component_enabled = True
-        self.lock = threading.Lock()
 
     @abc.abstractmethod
     def run(self):
         """ Run the thread. """
         pass
 
-    # FIXME: function contanirization not working
-    def check_if_component_on_canvas(self):
-        """ Check if the component is on canvas. """
-        if ghenv.Component.OnPingDocument() is None:
-            self.component_on_canvas = False
-            return False
-        else:
-            self.component_on_canvas = True
-            return True
+    def _check_if_component_on_canvas(self):
+        """ Check if the component is on canvas from thread. """
+        def __check_if_component_on_canvas():
+            if ghenv.Component.OnPingDocument() is None:
+                self._component_on_canvas = False
+                return False
+            else:
+                self._component_on_canvas = True
+                return True
+        action = System.Action(__check_if_component_on_canvas)
+        Rhino.RhinoApp.InvokeOnUiThread(action)
 
-    def check_if_component_enabled(self):
+    def _check_if_component_enabled(self):
         """ Check if the component is enabled from thread. """
         def __check_if_component_enabled():
             if ghenv.Component.Locked:
@@ -81,7 +84,6 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         )
         Rhino.RhinoApp.InvokeOnUiThread(action)
 
-    # TODO: not tested
     def add_runtime_remark(self, exception : str):
         """ Add a blank tab to the component from main thread. """
         action = System.Action(
@@ -91,17 +93,19 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
 
     @property
     def component_enabled(self):
-        self.check_if_component_enabled()
+        self._check_if_component_enabled()
         return self._component_enabled
 
-    # @property
-    # def component_on_canvas(self):
-    #     self.check_if_component_on_canvas()
-    #     return self._component_on_canvas
-
+    @property
+    def component_on_canvas(self):
+        self._check_if_component_on_canvas()
+        return self._component_on_canvas
 
 
 class ClientThread(GHThread):
+    """
+        A thread to connect to the VSCode server.
+    """
     def __init__(self,
                 vscode_server_ip : str,
                 vscode_server_port : int,
@@ -134,7 +138,6 @@ class ClientThread(GHThread):
                 # self.add_runtime_remark(f"script-sync::Received from server: {data}")
 
                 time.sleep(self.refresh_rate)
-                self.check_if_component_on_canvas()  #test
 
             except Exception as e:
                 if e.winerror == 10054:
@@ -149,7 +152,7 @@ class ClientThread(GHThread):
 
     def connect_to_vscode_server(self):
         """ Connect to the VSCode server. """
-        while self.check_if_component_on_canvas() and not self.is_connected:
+        while self.component_on_canvas and not self.is_connected:
             try:
                 self.client_socket.send(b"")
                 self.is_connected = True
@@ -211,6 +214,9 @@ class ClientThread(GHThread):
                 break
 
 class FileChangedThread(GHThread):
+    """
+        A thread to check if the file has changed on disk.
+    """
     def __init__(self,
                 path : str,
                 path_lock : threading.Lock,
@@ -235,11 +241,6 @@ class FileChangedThread(GHThread):
             last_modified = os.path.getmtime(path)
             while self.component_on_canvas:
                 System.Threading.Thread.Sleep(self.refresh_rate)
-                Rhino.RhinoApp.InvokeOnUiThread(System.Action(self.check_if_component_on_canvas))
-                
-                if not self.component_on_canvas:
-                    print(f"script-sync::Thread {self.name} aborted")
-                    break
                 current_modified = os.path.getmtime(path)
                 if current_modified != last_modified:
                     last_modified = current_modified
@@ -265,22 +266,6 @@ class ScriptSyncCPy(component):
         self.path_lock = threading.Lock()
 
         self.client_thread_name = None
-
-
-    # # TODO: this should be implmeneted in a separate thread to
-    # # continusly check if vscode is started, if not just raise a warning
-    # def connect_to_vscode_server(self):
-    #     """ Connect to the VSCode server. """
-    #     try:
-    #         self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
-    #     except ConnectionRefusedError:
-    #         print("script-sync::Connection refused by the vscode-server")
-    #         return False
-    #     except Exception as e:
-    #         print(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-    #         return False
-    #     self.client_socket.send("Hello vscode from GHcomponent!".encode())
-    #     return True
 
     # TODO: see if we need to send back the stderror or stdout is enough to grab the err messages
     def safe_exec(self, path, globals, locals):
