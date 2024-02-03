@@ -16,6 +16,7 @@ import io
 import abc
 import socket
 import threading
+import queue
 
 import rhinoscriptsyntax as rs
 
@@ -109,35 +110,48 @@ class ClientThread(GHThread):
     def __init__(self,
                 vscode_server_ip : str,
                 vscode_server_port : int,
-                name : str):
+                name : str,
+                queue_msg : queue.Queue=None,
+                lock_queue_msg : threading.Lock=None,
+                event_fire_msg : threading.Event=None,
+                ):
         super().__init__(name=name)
         self.client_socket = None
         self.vscode_server_ip = vscode_server_ip
         self.vscode_server_port = vscode_server_port
+        
         self.client_socket = socket
         self.is_connected = False
-        self.refresh_rate = 1  # seconds
+        self.connect_refresh_rate = 2  # seconds
+        self.msg_send_refresh_rate = 1  # seconds
+        
+        self.queue_msg = queue_msg
+        self.lock_queue_msg = lock_queue_msg
+        self.event_fire_msg = event_fire_msg
 
     def run(self):
-        """ Run the thread. """
-
+        """ Run the thread. Send the message to the vscode server."""
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         while self.component_on_canvas and self.component_enabled:
             try:
                 if not self.is_connected:
+                    # FIXME: when connecting to the server for the first time it recomputes and 
+                    # re-executes the script for a total of 2 times. This is not good.
                     self.connect_to_vscode_server()
                     self.clear_component()
-                    self.expire_component_solution()
+                    self.expire_component_solution()  # <<<< this is not good
 
-                self.client_socket.send("Hello test!".encode())
+                with self.lock_queue_msg:
+                    if self.queue_msg is not None:
+                        if not self.queue_msg.empty():
+                            msg = self.queue_msg.get()
+                            self.queue_msg.task_done()
+                            self.event_fire_msg.set()
+                            self.event_fire_msg.clear()
+                            self.client_socket.send(msg.encode())
 
-                # data = self.client_socket.recv(1024).decode()
-                # if not data:
-                #     break
-                # self.add_runtime_remark(f"script-sync::Received from server: {data}")
-
-                time.sleep(self.refresh_rate)
+                time.sleep(self.msg_send_refresh_rate)
 
             except Exception as e:
                 if e.winerror == 10054:
@@ -147,7 +161,7 @@ class ClientThread(GHThread):
                     self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.is_connected = False
 
-        client_socket.close()
+        self.client_socket.close()
         return
 
     def connect_to_vscode_server(self):
@@ -163,10 +177,8 @@ class ClientThread(GHThread):
                     break
                 except ConnectionRefusedError:
                     self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
-                    time.sleep(self.refresh_rate)
                 except ConnectionResetError:
                     self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
-                    time.sleep(self.refresh_rate)
                 except socket.error as e:
                     if e.winerror == 10056:
                         self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
@@ -174,44 +186,13 @@ class ClientThread(GHThread):
                         break
                     else:
                         self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-                        time.sleep(self.refresh_rate)
                 except Exception as e:
                     self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-                    time.sleep(self.refresh_rate)
+            finally:
+                time.sleep(self.connect_refresh_rate)
         if self.is_connected:
-            self.client_socket.send("script-sync::Hello vscode from GHcomponent!".encode())
+            self.client_socket.send("script-sync:: from GHcomponent:\n\n".encode())
 
-
-    # def send_to_server(self, client_socket : socket.socket) -> None:
-    #     """
-    #         Send data to the server.
-            
-    #         :param client_socket: The client socket.
-    #     """
-    #     while self.component_on_canvas:
-    #         try:
-    #             client_socket.send("Hello server!".encode())
-    #             time.sleep(2)
-    #         except Exception as e:
-    #             print(f"script-sync::Error sending to server: {str(e)}")
-    #             break
-
-    def receive_from_server(self, client_socket : socket.socket) -> None:
-        """
-            Receive data from the server.
-            
-            :param client_socket: The client socket.
-        """
-        while self.component_on_canvas and self.component_enabled:
-            try:
-                data = client_socket.recv(1024).decode()
-                if not data:
-                    break
-                print(f"script-sync::Received from server: {data}")
-                client_socket.send("Hello server!".encode())
-            except Exception as e:
-                print(f"script-sync::Error receiving from server: {str(e)}")
-                break
 
 class FileChangedThread(GHThread):
     """
@@ -258,8 +239,9 @@ class ScriptSyncCPy(component):
         self.vscode_server_ip = "127.0.0.1"
         self.vscode_server_port = 58260
         self.stdout = None
-        # self.stderr = None  # TODO: can we redirect the stderr?
-        self.stdout_lock = threading.Lock()
+        self.queue_msg = queue.Queue()
+        self.queue_msg_lock = threading.Lock()
+        self.event_fire_msg = threading.Event()
 
         self.filechanged_thread_name = None
         self.path = None
@@ -267,11 +249,11 @@ class ScriptSyncCPy(component):
 
         self.client_thread_name = None
 
-    # TODO: see if we need to send back the stderror or stdout is enough to grab the err messages
     def safe_exec(self, path, globals, locals):
         """
             Execute Python3 code safely. It redirects the output of the code
             to a string buffer 'stdout' to output to the GH component param.
+            It is send to the vscode server.
             
             :param path: The path of the file to execute.
             :param globals: The globals dictionary.
@@ -281,28 +263,54 @@ class ScriptSyncCPy(component):
             with open(path, 'r') as f:
                 code = compile(f.read(), path, 'exec')
                 output = io.StringIO()
+
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
                 locals["stdout"] = output.getvalue()
+
+                # send the msg to the vscode server
+                self.queue_msg.put(output.getvalue())
+                self.event_fire_msg.set()
+
+                # pass the script variables to the GH component outputs
+                outparam = ghenv.Component.Params.Output
+                outparam_names = [p.NickName for p in outparam]
+                for outp in outparam_names:
+                    if outp in locals.keys():
+                        self._var_output.append(locals[outp])
+                    else:
+                        self._var_output.append(None)
+
                 sys.stdout = sys.__stdout__
             return locals
+            
         except Exception as e:
-            err_msg = f"script-sync::Error in the code: {str(e)}"
-            # TODO: here we need to send back the erro mesage to vscode
+
+            # send the error to the vscode server
+            self.queue_msg.put(str(e))
+            self.event_fire_msg.set()
+            
             sys.stdout = sys.__stdout__
+
+            err_msg = f"script-sync::Error in the code: {str(e)}"
             raise Exception(err_msg)
+
 
     def RunScript(self):
         """ This method is called whenever the component has to be recalculated. """
         self.is_success = False
         
-        # connect to the vscode server
+        # set up the tcp client to connect to the vscode server
         self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
         _ = [print(t.name) for t in threading.enumerate()]
         if self.client_thread_name not in [t.name for t in threading.enumerate()]:
             ClientThread(self.vscode_server_ip,
                         self.vscode_server_port,
-                        self.client_thread_name).start()
+                        self.client_thread_name,
+                        self.queue_msg,
+                        self.queue_msg_lock,
+                        self.event_fire_msg
+                        ).start()
 
         # check the file is path
         self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
@@ -314,7 +322,6 @@ class ScriptSyncCPy(component):
         self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
             FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
-        
 
         # we need to add the path of the modules
         path_dir = self.path.split("\\")
@@ -323,17 +330,9 @@ class ScriptSyncCPy(component):
 
         # run the script
         res = self.safe_exec(self.path, globals(), locals())
-
-        # get the output variables defined in the script
-        outparam = ghenv.Component.Params.Output
-        outparam_names = [p.NickName for p in outparam]
-        for outp in outparam_names:
-            if outp in res.keys():
-                self._var_output.append(res[outp])
-            else:
-                self._var_output.append(None)
-    
         self.is_success = True
+        return
+
     # TODO: add a menu item to select the file to run
 
 
