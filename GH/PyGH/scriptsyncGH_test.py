@@ -102,6 +102,8 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         self._check_if_component_on_canvas()
         return self._component_on_canvas
 
+# activate the debug mode for the threads
+__IS_DEBUG__ = False
 
 class ClientThread(GHThread):
     """
@@ -136,11 +138,10 @@ class ClientThread(GHThread):
         while self.component_on_canvas and self.component_enabled:
             try:
                 if not self.is_connected:
-                    # FIXME: when connecting to the server for the first time it recomputes and 
-                    # re-executes the script for a total of 2 times. This is not good.
                     self.connect_to_vscode_server()
-                    self.clear_component()
-                    self.expire_component_solution()  # <<<< this is not good
+                    if __IS_DEBUG__:
+                        self.clear_component()
+                        self.expire_component_solution()  # <<<< this is not good
                     continue
 
                 self.event_fire_msg.wait()
@@ -177,20 +178,25 @@ class ClientThread(GHThread):
                     self.is_connected = True
                     break
                 except ConnectionRefusedError:
-                    self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
+                    if __IS_DEBUG__:
+                        self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
                     self.is_connected = False
                 except ConnectionResetError:
-                    self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
+                    if __IS_DEBUG__:
+                        self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
                     self.is_connected = False
                 except socket.error as e:
                     if e.winerror == 10056:
-                        self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
+                        if __IS_DEBUG__:
+                            self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
                         self.is_connected = True
                         break
                     else:
-                        self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+                        if __IS_DEBUG__:
+                            self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
                 except Exception as e:
-                    self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+                    if __IS_DEBUG__:
+                        self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
             finally:
                 time.sleep(self.connect_refresh_rate)
         if self.is_connected:
