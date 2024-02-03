@@ -123,7 +123,7 @@ class ClientThread(GHThread):
         self.client_socket = socket
         self.is_connected = False
         self.connect_refresh_rate = 2  # seconds
-        self.msg_send_refresh_rate = 1  # seconds
+        self.msg_send_refresh_rate = 0.3  # seconds
         
         self.queue_msg = queue_msg
         self.lock_queue_msg = lock_queue_msg
@@ -141,6 +141,9 @@ class ClientThread(GHThread):
                     self.connect_to_vscode_server()
                     self.clear_component()
                     self.expire_component_solution()  # <<<< this is not good
+                    continue
+
+                self.event_fire_msg.wait()
 
                 with self.lock_queue_msg:
                     if self.queue_msg is not None:
@@ -150,8 +153,6 @@ class ClientThread(GHThread):
                             self.event_fire_msg.set()
                             self.event_fire_msg.clear()
                             self.client_socket.send(msg.encode())
-
-                time.sleep(self.msg_send_refresh_rate)
 
             except Exception as e:
                 if e.winerror == 10054:
@@ -177,8 +178,10 @@ class ClientThread(GHThread):
                     break
                 except ConnectionRefusedError:
                     self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
+                    self.is_connected = False
                 except ConnectionResetError:
                     self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
+                    self.is_connected = False
                 except socket.error as e:
                     if e.winerror == 10056:
                         self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
@@ -268,6 +271,7 @@ class ScriptSyncCPy(component):
                     exec(code, globals, locals)
                 locals["stdout"] = output.getvalue()
 
+
                 # send the msg to the vscode server
                 self.queue_msg.put(output.getvalue())
                 self.event_fire_msg.set()
@@ -283,7 +287,7 @@ class ScriptSyncCPy(component):
 
                 sys.stdout = sys.__stdout__
             return locals
-            
+
         except Exception as e:
 
             # send the error to the vscode server
@@ -296,7 +300,7 @@ class ScriptSyncCPy(component):
             raise Exception(err_msg)
 
 
-    def RunScript(self):
+    def RunScript(self, x):
         """ This method is called whenever the component has to be recalculated. """
         self.is_success = False
         
@@ -313,6 +317,7 @@ class ScriptSyncCPy(component):
                         ).start()
 
         # check the file is path
+        # TODO: menu item to add to set file
         self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
         
         if not os.path.exists(self.path):
@@ -332,8 +337,6 @@ class ScriptSyncCPy(component):
         res = self.safe_exec(self.path, globals(), locals())
         self.is_success = True
         return
-
-    # TODO: add a menu item to select the file to run
 
 
     def AfterRunScript(self):
