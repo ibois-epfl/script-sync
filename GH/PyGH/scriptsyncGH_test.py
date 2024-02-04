@@ -20,6 +20,8 @@ import queue
 
 import rhinoscriptsyntax as rs
 
+# TODO: modify the error messages for client with vscode-related info
+
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -232,6 +234,42 @@ class FileChangedThread(GHThread):
                     self.expire_component_solution()
 
 
+
+
+
+# class Attributes_Custom(gh.Kernel.Attributes.GH_ComponentAttributes): # inherits all methods of GH_ComponentAttributes
+#     def Layout(self): # override inherited method Layout
+#         gh.Kernel.Attributes.GH_ComponentAttributes.Layout(self) # run render before changing the definition
+#         rec0 = gh.Kernel.GH_Convert.ToRectangle(self.Bounds) #System.Drawing.Rectangle 
+#         rec0.Height += 22
+#         rec1 = rec0
+#         rec1.Y = rec1.Bottom - 22
+#         rec1.Height = 22
+#         rec1.Inflate(-2, -2)
+#         Bounds = rec0
+#         self.Bounds=Bounds
+#         ButtonBounds = rec1
+#         self.ButtonBounds=ButtonBounds
+    
+#     def Render(self,canvas, graphics, channel): # Override Render method
+#         gh.Kernel.Attributes.GH_ComponentAttributes.Render(self, canvas, graphics, channel) # run render before changing the definition
+#         if channel == gh.GUI.Canvas.GH_CanvasChannel.Objects:
+#             button = gh.GUI.Canvas.GH_Capsule.CreateTextCapsule(self.ButtonBounds, self.ButtonBounds, gh.GUI.Canvas.GH_Palette.Black, "Button", 2, 0)
+#             button.Render(graphics, self.Selected, self.Owner.Locked, False)
+#             button.Dispose()
+    
+#     def RespondToMouseDown(self,sender,e):
+#         if e.Button == System.Windows.Forms.MouseButtons.Left:
+#             rec = self.ButtonBounds
+#             if rec.Contains(e.CanvasLocation):
+#                 MessageBox.Show("The button was clicked", "Button", MessageBoxButtons.OK)
+#                 return  gh.GUI.Canvas.GH_ObjectResponse.Handled
+#         self.sender=sender
+#         self.e=e
+#         self.RespondToMouseDown(sender, e)
+
+
+
 class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
@@ -240,6 +278,7 @@ class ScriptSyncCPy(component):
 
         self.is_success = False
 
+        self.client_thread_name = None
         self.vscode_server_ip = "127.0.0.1"
         self.vscode_server_port = 58260
         self.stdout = None
@@ -251,7 +290,10 @@ class ScriptSyncCPy(component):
         self.path = ""
         self.path_lock = threading.Lock()
 
-        self.client_thread_name = None
+    # def CreateAttributes(self):
+    #     self.m_attributes = Attributes_Custom(self)
+    #     return self.m_attributes
+
 
     def safe_exec(self, path, globals, locals):
         """
@@ -304,6 +346,9 @@ class ScriptSyncCPy(component):
     def RunScript(self, script : bool, x):
         """ This method is called whenever the component has to be recalculated. """
         self.is_success = False
+
+
+        
         
         # set up the tcp client to connect to the vscode server
         self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
@@ -318,13 +363,14 @@ class ScriptSyncCPy(component):
                         ).start()
 
         # check the file is path
-        # TODO: menu item to add to set file
 
         # make self.path a sticky variable
 
         # self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
         # TODO: path need to be cached otherwise when component is expired the path is lost
-        # or added, or the file is reopend, it loses the path
+        # or added, or the file is reopend, it loses the path (how to cache)
+        # --> a solution might be to use value table to store the path:
+        # https://discourse.mcneel.com/t/how-to-update-sticky-inside-cluster/139990/5
 
         if script is True:
             # use windows form to open the file
@@ -351,7 +397,7 @@ class ScriptSyncCPy(component):
 
 
         if not os.path.exists(self.path):
-            raise Exception("script-sync::File not selected")
+            raise Exception("script-sync::File does not exist")
 
 
         # get the name of the file
