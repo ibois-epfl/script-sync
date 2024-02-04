@@ -20,6 +20,7 @@ import queue
 
 import rhinoscriptsyntax as rs
 
+
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
         A base class for Grasshopper threads.
@@ -102,8 +103,6 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         self._check_if_component_on_canvas()
         return self._component_on_canvas
 
-# activate the debug mode for the threads
-__IS_DEBUG__ = False
 
 class ClientThread(GHThread):
     """
@@ -139,9 +138,10 @@ class ClientThread(GHThread):
             try:
                 if not self.is_connected:
                     self.connect_to_vscode_server()
-                    if __IS_DEBUG__:
-                        self.clear_component()
-                        self.expire_component_solution()  # <<<< this is not good
+                    # FIXME: if debug mode is on the component is expiired twice.
+                    # this is not good because the message is sent twice to the vscode server
+                    self.clear_component()
+                    self.expire_component_solution()  # <<<< this is not good
                     continue
 
                 self.event_fire_msg.wait()
@@ -178,25 +178,20 @@ class ClientThread(GHThread):
                     self.is_connected = True
                     break
                 except ConnectionRefusedError:
-                    if __IS_DEBUG__:
-                        self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
+                    self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
                     self.is_connected = False
                 except ConnectionResetError:
-                    if __IS_DEBUG__:
-                        self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
+                    self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
                     self.is_connected = False
                 except socket.error as e:
                     if e.winerror == 10056:
-                        if __IS_DEBUG__:
-                            self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
+                        self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
                         self.is_connected = True
                         break
                     else:
-                        if __IS_DEBUG__:
-                            self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-                except Exception as e:
-                    if __IS_DEBUG__:
                         self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+                except Exception as e:
+                    self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
             finally:
                 time.sleep(self.connect_refresh_rate)
         if self.is_connected:
@@ -253,7 +248,7 @@ class ScriptSyncCPy(component):
         self.event_fire_msg = threading.Event()
 
         self.filechanged_thread_name = None
-        self.path = None
+        self.path = ""
         self.path_lock = threading.Lock()
 
         self.client_thread_name = None
@@ -306,7 +301,7 @@ class ScriptSyncCPy(component):
             raise Exception(err_msg)
 
 
-    def RunScript(self, x):
+    def RunScript(self, script : bool, x):
         """ This method is called whenever the component has to be recalculated. """
         self.is_success = False
         
@@ -324,10 +319,46 @@ class ScriptSyncCPy(component):
 
         # check the file is path
         # TODO: menu item to add to set file
-        self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
-        
+
+        # make self.path a sticky variable
+
+        # self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
+        # TODO: path need to be cached otherwise when component is expired the path is lost
+        # or added, or the file is reopend, it loses the path
+
+        if script is True:
+            # use windows form to open the file
+            dialog = System.Windows.Forms.OpenFileDialog()
+            dialog.Filter = "Python files (*.py)|*.py"
+            dialog.Title = "Select a Python file"
+            dialog.InitialDirectory = os.path.dirname(self.path)
+            dialog.FileName = os.path.basename(self.path)
+            dialog.Multiselect = False
+            dialog.CheckFileExists = True
+            dialog.CheckPathExists = True
+            dialog.RestoreDirectory = True
+            if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
+                self.path = dialog.FileName
+            else:
+                raise Exception("script-sync::No file selected")
+        # else:
+        #     if not os.path.exists(self.path):
+        #         raise Exception("script-sync::File not selected")
+        print(self.path)
+
+        if self.path == "":
+            raise Exception("script-sync::File not selected")
+
+
         if not os.path.exists(self.path):
-            raise Exception("script-sync::File does not exist")
+            raise Exception("script-sync::File not selected")
+
+
+        # get the name of the file
+        script_name = os.path.basename(self.path)
+        ghenv.Component.Message = f"{script_name}"
+
+
 
         # get the guid instance of the component
         self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
