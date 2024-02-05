@@ -255,7 +255,7 @@ class ScriptSyncCPy(component):
         self.path_lock = threading.Lock()
 
         # TODO: test
-        self.path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
+        self.path_name_table_value = None
 
     def RemovedFromDocument(self, doc):
         """ Remove the component from the document. """
@@ -272,7 +272,7 @@ class ScriptSyncCPy(component):
         if self.event_fire_msg is not None:
             self.event_fire_msg.clear()
 
-        ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)
+        ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)  # <<<<<<<<<<<<< path usage
 
 
     def _add_button(self):
@@ -303,6 +303,9 @@ class ScriptSyncCPy(component):
             ghenv.Component.Params.OnParametersChanged()
 
         return True
+
+    # def _on_script_selected(self):
+    #     """ The function deals with the button to set the script path. """
 
     def _safe_exec(self, path, globals, locals):
         """
@@ -360,7 +363,7 @@ class ScriptSyncCPy(component):
     def RunScript(self,
                   script : bool,
                   x : int):
-        """ This method is called whenever the component has to be recalculated. """
+        """ This method is called whenever the component has to be recalculated it's the solve main instance. """
         self.is_success = False
 
 
@@ -376,21 +379,14 @@ class ScriptSyncCPy(component):
                         self.event_fire_msg
                         ).start()
 
-        # check the file is path
 
-        # make self.path a sticky variable
-
-        # self.path = r"F:\script-sync\GH\PyGH\test\runner_script.py"  # <<<< test
-        # TODO: path need to be cached otherwise when component is expired the path is lost
-        # or added, or the file is reopend, it loses the path (how to cache)
-        # --> a solution might be to use value table to store the path:
-        # https://discourse.mcneel.com/t/how-to-update-sticky-inside-cluster/139990/5
+        # ======================================================================================
+        # path saving/setting
 
         print(self.path)
-        # path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
+        path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid) + "::" + "self.path"
         ghenv.Component.OnPingDocument().ValueTable.SetValue(self.path_name_table_value, self.path_name_table_value)
-        value = ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
-
+        # value = ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
         print(value)
 
         # remove the path from the value table
@@ -411,31 +407,37 @@ class ScriptSyncCPy(component):
             dialog.CheckPathExists = True
             dialog.RestoreDirectory = True
             if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-                self.path = dialog.FileName
+                self.path = dialog.FileName  # <<<<<<<<<<<<< path usage
             else:
                 raise Exception("script-sync::No file selected")
         # else:
         #     if not os.path.exists(self.path):
         #         raise Exception("script-sync::File not selected")
 
-        if self.path == "":
+        if self.path == "":  # <<<<<<<<<<<<< path usage
             raise Exception("script-sync::File not selected")
-        if not os.path.exists(self.path):
+        if not os.path.exists(self.path):  # <<<<<<<<<<<<< path usage
             raise Exception("script-sync::File does not exist")
 
 
         # get the name of the file
-        script_name = os.path.basename(self.path)
+        script_name = os.path.basename(self.path)  # <<<<<<<<<<<<< path usage
         ghenv.Component.Message = f"{script_name}"
 
 
 
-        # get the guid instance of the component
+
+
+        # ======================================================================================
+
+
+        # file change listener thread
         self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
             FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
 
-        # we need to add the path of the modules
+
+        # add the path of the file to use the modules
         path_dir = self.path.split("\\")
         path_dir = "\\".join(path_dir[:-1])
         sys.path.insert(0, path_dir)
@@ -444,7 +446,6 @@ class ScriptSyncCPy(component):
         res = self._safe_exec(self.path, globals(), locals())
         self.is_success = True
         return
-
 
     def AfterRunScript(self):
         """
