@@ -11,7 +11,7 @@
         "iconDisplay": 2,
         "inputParameters": [
             {
-                "name": "X",
+                "name": "x",
                 "nickname": "x",
                 "description": "The X value of the component.",
                 "optional": true,
@@ -25,7 +25,7 @@
                 "simplify": false
             },
             {
-                "name": "Y",
+                "name": "y",
                 "nickname": "y",
                 "description": "The Y value of the component.",
                 "optional": true,

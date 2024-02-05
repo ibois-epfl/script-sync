@@ -21,7 +21,7 @@ import queue
 import rhinoscriptsyntax as rs
 
 # TODO: modify the error messages for client with vscode-related info
-
+#TODO: add tooltip description to parameters in metadata
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -234,42 +234,6 @@ class FileChangedThread(GHThread):
                     self.expire_component_solution()
 
 
-
-
-
-# class Attributes_Custom(gh.Kernel.Attributes.GH_ComponentAttributes): # inherits all methods of GH_ComponentAttributes
-#     def Layout(self): # override inherited method Layout
-#         gh.Kernel.Attributes.GH_ComponentAttributes.Layout(self) # run render before changing the definition
-#         rec0 = gh.Kernel.GH_Convert.ToRectangle(self.Bounds) #System.Drawing.Rectangle 
-#         rec0.Height += 22
-#         rec1 = rec0
-#         rec1.Y = rec1.Bottom - 22
-#         rec1.Height = 22
-#         rec1.Inflate(-2, -2)
-#         Bounds = rec0
-#         self.Bounds=Bounds
-#         ButtonBounds = rec1
-#         self.ButtonBounds=ButtonBounds
-    
-#     def Render(self,canvas, graphics, channel): # Override Render method
-#         gh.Kernel.Attributes.GH_ComponentAttributes.Render(self, canvas, graphics, channel) # run render before changing the definition
-#         if channel == gh.GUI.Canvas.GH_CanvasChannel.Objects:
-#             button = gh.GUI.Canvas.GH_Capsule.CreateTextCapsule(self.ButtonBounds, self.ButtonBounds, gh.GUI.Canvas.GH_Palette.Black, "Button", 2, 0)
-#             button.Render(graphics, self.Selected, self.Owner.Locked, False)
-#             button.Dispose()
-    
-#     def RespondToMouseDown(self,sender,e):
-#         if e.Button == System.Windows.Forms.MouseButtons.Left:
-#             rec = self.ButtonBounds
-#             if rec.Contains(e.CanvasLocation):
-#                 MessageBox.Show("The button was clicked", "Button", MessageBoxButtons.OK)
-#                 return  gh.GUI.Canvas.GH_ObjectResponse.Handled
-#         self.sender=sender
-#         self.e=e
-#         self.RespondToMouseDown(sender, e)
-
-
-
 class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
@@ -290,12 +254,57 @@ class ScriptSyncCPy(component):
         self.path = ""
         self.path_lock = threading.Lock()
 
-    # def CreateAttributes(self):
-    #     self.m_attributes = Attributes_Custom(self)
-    #     return self.m_attributes
+        # TODO: test
+        self.path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
+
+    def RemovedFromDocument(self, doc):
+        """ Remove the component from the document. """
+        if self.client_thread_name in [t.name for t in threading.enumerate()]:
+            client_thread = [t for t in threading.enumerate() if t.name == self.client_thread_name][0]
+            client_thread.join()
+        if self.filechanged_thread_name in [t.name for t in threading.enumerate()]:
+            filechanged_thread = [t for t in threading.enumerate() if t.name == self.filechanged_thread_name][0]
+            filechanged_thread.join()
+        if self.queue_msg is not None:
+            self.queue_msg.join()
+        if self.queue_msg_lock is not None:
+            self.queue_msg_lock.release()
+        if self.event_fire_msg is not None:
+            self.event_fire_msg.clear()
+
+        ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)
 
 
-    def safe_exec(self, path, globals, locals):
+    def _add_button(self):
+        """Add a button to the canvas and wire it to the "script" param."""
+        # get the "script" param by name
+        script_param = [param for param in ghenv.Component.Params.Input if param.Name == "script"][0]
+
+        button = gh.Kernel.Special.GH_ButtonObject()
+        button.Name = ""
+        button.NickName = ""
+        button.EvaluateExpressions()
+        button.CreateAttributes()
+
+        script_pivot_X = script_param.Attributes.Pivot.X
+        script_pivot_Y = script_param.Attributes.Pivot.Y
+        button_pivot_X = script_pivot_X-100
+        button_pivot_Y = script_pivot_Y-11
+        button.Attributes.Pivot = System.Drawing.PointF(button_pivot_X,
+                                                                button_pivot_Y)
+        button.Attributes.ExpireLayout()
+
+        # wire it to "script" param
+        GH_doc = gh.Instances.ActiveCanvas.Document
+        if not script_param.Sources:
+            success = GH_doc.AddObject(docObject = button,
+                                        update = False)
+            script_param.AddSource(button)
+            ghenv.Component.Params.OnParametersChanged()
+
+        return True
+
+    def _safe_exec(self, path, globals, locals):
         """
             Execute Python3 code safely. It redirects the output of the code
             to a string buffer 'stdout' to output to the GH component param.
@@ -313,7 +322,6 @@ class ScriptSyncCPy(component):
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
                 locals["stdout"] = output.getvalue()
-
 
                 # send the msg to the vscode server
                 self.queue_msg.put(output.getvalue())
@@ -342,14 +350,20 @@ class ScriptSyncCPy(component):
             err_msg = f"script-sync::Error in the code: {str(e)}"
             raise Exception(err_msg)
 
+    def BeforeRunScript(self):
+        """
+            This method is called as soon as the component has been
+            placed on the canvas and before the script is run.
+        """
+        self._add_button()
 
-    def RunScript(self, script : bool, x):
+    def RunScript(self,
+                  script : bool,
+                  x : int):
         """ This method is called whenever the component has to be recalculated. """
         self.is_success = False
 
 
-        
-        
         # set up the tcp client to connect to the vscode server
         self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
         _ = [print(t.name) for t in threading.enumerate()]
@@ -372,6 +386,19 @@ class ScriptSyncCPy(component):
         # --> a solution might be to use value table to store the path:
         # https://discourse.mcneel.com/t/how-to-update-sticky-inside-cluster/139990/5
 
+        print(self.path)
+        # path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
+        ghenv.Component.OnPingDocument().ValueTable.SetValue(self.path_name_table_value, self.path_name_table_value)
+        value = ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
+
+        print(value)
+
+        # remove the path from the value table
+        # ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)
+        value =ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
+        print(f"after delete: {value}")
+
+        
         if script is True:
             # use windows form to open the file
             dialog = System.Windows.Forms.OpenFileDialog()
@@ -390,12 +417,9 @@ class ScriptSyncCPy(component):
         # else:
         #     if not os.path.exists(self.path):
         #         raise Exception("script-sync::File not selected")
-        print(self.path)
 
         if self.path == "":
             raise Exception("script-sync::File not selected")
-
-
         if not os.path.exists(self.path):
             raise Exception("script-sync::File does not exist")
 
@@ -417,7 +441,7 @@ class ScriptSyncCPy(component):
         sys.path.insert(0, path_dir)
 
         # run the script
-        res = self.safe_exec(self.path, globals(), locals())
+        res = self._safe_exec(self.path, globals(), locals())
         self.is_success = True
         return
 
@@ -437,3 +461,9 @@ class ScriptSyncCPy(component):
             ghenv.Component.Params.Output[idx].VolatileData.Clear()
             ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output.clear()
+
+
+    # @property
+    # def path(self):
+    #     self._path = ghenv.Component.OnPingDocument().GetValue("path")
+    #     return self._path
