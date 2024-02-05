@@ -121,85 +121,64 @@ class ClientThread(GHThread):
                 event_fire_msg : threading.Event=None
                 ):
         super().__init__(name=name)
-        self.client_socket = None
         self.vscode_server_ip = vscode_server_ip
         self.vscode_server_port = vscode_server_port
-        
-        self.client_socket = socket
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.is_connected = False
         self.connect_refresh_rate = 2  # seconds
-        self.msg_send_refresh_rate = 0.3  # seconds
-        
         self.queue_msg = queue_msg
         self.lock_queue_msg = lock_queue_msg
         self.event_fire_msg = event_fire_msg
 
     def run(self):
         """ Run the thread. Send the message to the vscode server."""
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         while self.component_on_canvas and self.component_enabled:
-            try:
-                if not self.is_connected:
-                    self.connect_to_vscode_server()
-                    # FIXME: if debug mode is on the component is expired twice.
-                    # this is not good because the message is sent twice to the vscode server
-                    self.clear_component()
-                    self.expire_component_solution()  # <<<< here's the problem
-                    continue
+            if not self.is_connected:
+                self.clear_queue()
+                self.connect_to_vscode_server()
+                self.clear_component()
+                self.expire_component_solution()
+                continue
 
-                self.event_fire_msg.wait()
+            self.event_fire_msg.wait()
+            self.send_message()
 
-                with self.lock_queue_msg:
-                    if self.queue_msg is not None:
-                        if not self.queue_msg.empty():
-                            msg = self.queue_msg.get()
-                            self.queue_msg.task_done()
-                            self.event_fire_msg.set()
-                            self.event_fire_msg.clear()
-                            self.client_socket.send(msg)
+    def clear_queue(self):
+        with self.lock_queue_msg:
+            while not self.queue_msg.empty():
+                self.queue_msg.get()
+                self.queue_msg.task_done()
+                self.event_fire_msg.set()
+                self.event_fire_msg.clear()
 
-            except Exception as e:
-                if e.winerror == 10054:
-                    # Connection was forcibly closed by the vscode-server
-                    # it means that vscode has been shut down abruptly
-                    # in this case a new socket needs to be created
-                    self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    self.is_connected = False
-
-        self.client_socket.close()
-        return
+    def send_message(self):
+        with self.lock_queue_msg:
+            if self.queue_msg and not self.queue_msg.empty():
+                msg = self.queue_msg.get()
+                self.queue_msg.task_done()
+                self.event_fire_msg.set()
+                self.event_fire_msg.clear()
+                self.client_socket.send(msg)
 
     def connect_to_vscode_server(self):
-        """ Connect to the VSCode server. """
         while self.component_on_canvas and not self.is_connected:
             try:
                 self.client_socket.send(b"")
                 self.is_connected = True
             except socket.error:
-                try:
-                    self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
-                    self.is_connected = True
-                    break
-                except ConnectionRefusedError:
-                    self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
-                    self.is_connected = False
-                except ConnectionResetError:
-                    self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
-                    self.is_connected = False
-                except socket.error as e:
-                    if e.winerror == 10056:
-                        self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
-                        self.is_connected = True
-                        break
-                    else:
-                        self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-                except Exception as e:
-                    self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-            finally:
-                time.sleep(self.connect_refresh_rate)
-        # if self.is_connected:
-        #     self.client_socket.send("script-sync:: from GHcomponent:\n\n".encode())
+                self.handle_connection_error()
+
+    def handle_connection_error(self):
+        try:
+            self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
+            self.is_connected = True
+        except (ConnectionRefusedError, ConnectionResetError, socket.error) as e:
+            self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+            self.is_connected = False
+            if isinstance(e, socket.error) and e.winerror == 10056:
+                self.is_connected = True
+        finally:
+            time.sleep(self.connect_refresh_rate)
 
 
 class FileChangedThread(GHThread):
