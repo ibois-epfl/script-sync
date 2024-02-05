@@ -17,6 +17,7 @@ import abc
 import socket
 import threading
 import queue
+import json
 
 import rhinoscriptsyntax as rs
 
@@ -117,7 +118,7 @@ class ClientThread(GHThread):
                 name : str,
                 queue_msg : queue.Queue=None,
                 lock_queue_msg : threading.Lock=None,
-                event_fire_msg : threading.Event=None,
+                event_fire_msg : threading.Event=None
                 ):
         super().__init__(name=name)
         self.client_socket = None
@@ -141,10 +142,10 @@ class ClientThread(GHThread):
             try:
                 if not self.is_connected:
                     self.connect_to_vscode_server()
-                    # FIXME: if debug mode is on the component is expiired twice.
+                    # FIXME: if debug mode is on the component is expired twice.
                     # this is not good because the message is sent twice to the vscode server
                     self.clear_component()
-                    self.expire_component_solution()  # <<<< this is not good
+                    self.expire_component_solution()  # <<<< here's the problem
                     continue
 
                 self.event_fire_msg.wait()
@@ -156,7 +157,7 @@ class ClientThread(GHThread):
                             self.queue_msg.task_done()
                             self.event_fire_msg.set()
                             self.event_fire_msg.clear()
-                            self.client_socket.send(msg.encode())
+                            self.client_socket.send(msg)
 
             except Exception as e:
                 if e.winerror == 10054:
@@ -197,8 +198,8 @@ class ClientThread(GHThread):
                     self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
             finally:
                 time.sleep(self.connect_refresh_rate)
-        if self.is_connected:
-            self.client_socket.send("script-sync:: from GHcomponent:\n\n".encode())
+        # if self.is_connected:
+        #     self.client_socket.send("script-sync:: from GHcomponent:\n\n".encode())
 
 
 class FileChangedThread(GHThread):
@@ -329,7 +330,11 @@ class ScriptSyncCPy(component):
                 locals["stdout"] = output.getvalue()
 
                 # send the msg to the vscode server
-                self.queue_msg.put(output.getvalue())
+                msg_json = json.dumps({"script_path": self.path,
+                                       "guid": str(ghenv.Component.InstanceGuid),
+                                       "msg": output.getvalue()})
+                msg_json = msg_json.encode('utf-8')
+                self.queue_msg.put(msg_json)
                 self.event_fire_msg.set()
 
                 # pass the script variables to the GH component outputs

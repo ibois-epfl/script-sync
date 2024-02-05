@@ -1,15 +1,18 @@
 import socket
 import threading
 import os
+import json
 
 def handle_client(client_socket):
     try:
         while True:
             # Receive data from the client
-            message = client_socket.recv(1024).decode()
+            message = client_socket.recv(1024).decode('utf-8')
             if not message:
                 break
-            print(f"Received: {message}")
+            # obj = json.loads(message)
+            print(f"{message}")
+
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
@@ -38,7 +41,22 @@ def start_server():
             try:
                 # Accept a new client connection
                 client_socket, addr = server.accept()
-                print(f"Accepted connection from: {addr[0]}:{addr[1]}")
+                # print(f"Accepted connection from: {addr[0]}:{addr[1]}")
+                # data_str = client_socket.recv(1024).decode('utf-8')
+                # print(f"Received data string: {data_str}")
+
+                # # if the data_str is empty, continue to the next iteration
+                # if not data_str or data_str == "":
+                #     continue
+
+                # try:
+                #     obj = json.loads(data_str)
+                #     print(f"Received data: {obj}")
+                # except Exception as e:
+                #     print(f"An error occurred: {e}")
+
+
+
 
                 # Start a new thread to handle this client connection
                 client_handler = threading.Thread(target=handle_client, args=(client_socket,))
