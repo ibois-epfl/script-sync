@@ -22,6 +22,7 @@ import rhinoscriptsyntax as rs
 
 # TODO: modify the error messages for client with vscode-related info
 #TODO: add tooltip description to parameters in metadata
+# TODO: in the tcp send to vscode, we need to include first the name of the selected file
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -238,7 +239,7 @@ class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
         self._var_output = []
-        ghenv.Component.Message = "ScriptSyncCPy"
+        ghenv.Component.Message = "no-script-selected"
 
         self.is_success = False
 
@@ -251,11 +252,8 @@ class ScriptSyncCPy(component):
         self.event_fire_msg = threading.Event()
 
         self.filechanged_thread_name = None
-        self.path = ""
+        self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
         self.path_lock = threading.Lock()
-
-        # TODO: test
-        self.path_name_table_value = None
 
     def RemovedFromDocument(self, doc):
         """ Remove the component from the document. """
@@ -272,8 +270,8 @@ class ScriptSyncCPy(component):
         if self.event_fire_msg is not None:
             self.event_fire_msg.clear()
 
-        ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)  # <<<<<<<<<<<<< path usage
-
+        # clear the path from the table view
+        del self.path
 
     def _add_button(self):
         """Add a button to the canvas and wire it to the "script" param."""
@@ -304,9 +302,6 @@ class ScriptSyncCPy(component):
 
         return True
 
-    # def _on_script_selected(self):
-    #     """ The function deals with the button to set the script path. """
-
     def _safe_exec(self, path, globals, locals):
         """
             Execute Python3 code safely. It redirects the output of the code
@@ -319,9 +314,16 @@ class ScriptSyncCPy(component):
         """
         try:
             with open(path, 'r') as f:
+                # add the path of the file to use the modules
+                path_dir = self.path.split("\\")
+                path_dir = "\\".join(path_dir[:-1])
+                sys.path.insert(0, path_dir)
+
+                # parse the code
                 code = compile(f.read(), path, 'exec')
                 output = io.StringIO()
 
+                # execute the code
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
                 locals["stdout"] = output.getvalue()
@@ -366,6 +368,28 @@ class ScriptSyncCPy(component):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
         self.is_success = False
 
+        # set the path
+        if script is True:
+            dialog = System.Windows.Forms.OpenFileDialog()
+            dialog.Filter = "Python files (*.py)|*.py"
+            dialog.Title = "Select a Python file"
+            dialog.InitialDirectory = os.path.dirname("")
+            dialog.FileName = ""
+            dialog.Multiselect = False
+            dialog.CheckFileExists = True
+            dialog.CheckPathExists = True
+            dialog.RestoreDirectory = True
+            if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
+                self.path = dialog.FileName
+        if self.path is None:
+            raise Exception("script-sync::File not selected")
+        if not os.path.exists(self.path):
+            raise Exception("script-sync::File does not exist")
+
+        # file change listener thread
+        self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
+        if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
+            FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
 
         # set up the tcp client to connect to the vscode server
         self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
@@ -378,69 +402,6 @@ class ScriptSyncCPy(component):
                         self.queue_msg_lock,
                         self.event_fire_msg
                         ).start()
-
-
-        # ======================================================================================
-        # path saving/setting
-
-        print(self.path)
-        path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid) + "::" + "self.path"
-        ghenv.Component.OnPingDocument().ValueTable.SetValue(self.path_name_table_value, self.path_name_table_value)
-        # value = ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
-        print(value)
-
-        # remove the path from the value table
-        # ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.path_name_table_value)
-        value =ghenv.Component.OnPingDocument().ValueTable.GetValue(self.path_name_table_value, "not_found")
-        print(f"after delete: {value}")
-
-        
-        if script is True:
-            # use windows form to open the file
-            dialog = System.Windows.Forms.OpenFileDialog()
-            dialog.Filter = "Python files (*.py)|*.py"
-            dialog.Title = "Select a Python file"
-            dialog.InitialDirectory = os.path.dirname(self.path)
-            dialog.FileName = os.path.basename(self.path)
-            dialog.Multiselect = False
-            dialog.CheckFileExists = True
-            dialog.CheckPathExists = True
-            dialog.RestoreDirectory = True
-            if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-                self.path = dialog.FileName  # <<<<<<<<<<<<< path usage
-            else:
-                raise Exception("script-sync::No file selected")
-        # else:
-        #     if not os.path.exists(self.path):
-        #         raise Exception("script-sync::File not selected")
-
-        if self.path == "":  # <<<<<<<<<<<<< path usage
-            raise Exception("script-sync::File not selected")
-        if not os.path.exists(self.path):  # <<<<<<<<<<<<< path usage
-            raise Exception("script-sync::File does not exist")
-
-
-        # get the name of the file
-        script_name = os.path.basename(self.path)  # <<<<<<<<<<<<< path usage
-        ghenv.Component.Message = f"{script_name}"
-
-
-
-
-
-        # ======================================================================================
-
-
-        # file change listener thread
-        self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
-        if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
-            FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
-
-
-        # add the path of the file to use the modules
-        path_dir = self.path.split("\\")
-        path_dir = "\\".join(path_dir[:-1])
-        sys.path.insert(0, path_dir)
 
         # run the script
         res = self._safe_exec(self.path, globals(), locals())
@@ -463,8 +424,26 @@ class ScriptSyncCPy(component):
             ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output.clear()
 
+    @property
+    def path(self):
+        """ Get the path of the file from the table view to be sticking between the sessions. """
+        table_value = ghenv.Component.OnPingDocument().ValueTable.GetValue(
+            self.__path_name_table_value, "not_found"
+        )
+        if table_value != "not_found":
+            return table_value
+        else:
+            return None
 
-    # @property
-    # def path(self):
-    #     self._path = ghenv.Component.OnPingDocument().GetValue("path")
-    #     return self._path
+    @path.setter
+    def path(self, path : str):
+        """ Set the path of the file to the table view to be sticking between the sessions. """
+        ghenv.Component.OnPingDocument().ValueTable.SetValue(self.__path_name_table_value, path)
+
+        script_name = os.path.basename(path)
+        ghenv.Component.Message = f"{script_name}"
+
+    @path.deleter
+    def path(self):
+        """ Delete the path of the file from the table view if the object is erased. """
+        ghenv.Component.OnPingDocument().ValueTable.DeleteValue(self.__path_name_table_value)
