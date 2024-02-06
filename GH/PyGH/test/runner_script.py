@@ -1,12 +1,15 @@
 #! python3
 
-# x = 123
-y = 456
+def main(x):
+    y = 456
+    a = x - y
+    c = x + y
+    b = 123456
+    print("runner_script.py::main() function called")
+    print(f"runner_script.py::b value: {b}")
+    print(f"runner_script.py::c value: {c}")
 
-a = x - y
-c = x + y
-b = 123456
+    return a
 
-print(f"runner_script.py::x value: {x}")
-print(f"runner_script.py::y value: {y}")
-print(f"runner_script.py::a value: {a}")
+if __name__ == '__main__':
+    a = main(x)

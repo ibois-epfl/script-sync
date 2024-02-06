@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/ibois-epfl/script-sync"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -23,15 +23,25 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.sendPath",
+        "command": "scriptsync.sendPath",
         "title": "Send Message to TCP ScriptSync Server"
+      },
+      {
+        "command": "scriptsync.toggleGH",
+        "title": "Toggle Server vscode to listen to incoming GH messages"
       }
     ],
     "keybindings": [
       {
-          "command": "extension.sendPath",
+          "command": "scriptsync.sendPath",
           "key": "f4",
           "mac": "f4",
+          "when": "editorTextFocus"
+      },
+      {
+          "command": "scriptsync.toggleGH",
+          "key": "shift+f4",
+          "mac": "shift+f4",
           "when": "editorTextFocus"
       }
     ]
