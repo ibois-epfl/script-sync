@@ -17,15 +17,8 @@
 #! python3
 
 def main():
-    x = 123
-    y = 45
-    a = x - y
-    c = x + y
-    b = 12345
-    print("runner_script.py::main() function called")
-    print(f"runner_script.py::a value: {a}")
-    print(f"runner_script.py::b value: {b}")
-    print(f"runner_script.py::c value: {c}")
+    k = 1234444
+    print(f"runner_script_2.py::k value: {k}")
 
     return a
 

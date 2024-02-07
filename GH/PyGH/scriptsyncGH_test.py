@@ -107,7 +107,7 @@ class GHThread(threading.Thread, metaclass=abc.ABCMeta):
         self._check_if_component_on_canvas()
         return self._component_on_canvas
 
-
+# TODO: clean this class
 class ClientThread(GHThread):
     """
         A thread to connect to the VSCode server.
@@ -125,60 +125,73 @@ class ClientThread(GHThread):
         self.vscode_server_port = vscode_server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.is_connected = False
-        self.connect_refresh_rate = 2  # seconds
+        self.connect_refresh_rate = 1  # seconds
         self.queue_msg = queue_msg
         self.lock_queue_msg = lock_queue_msg
         self.event_fire_msg = event_fire_msg
 
     def run(self):
         """ Run the thread. Send the message to the vscode server."""
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         while self.component_on_canvas and self.component_enabled:
-            if not self.is_connected:
-                self.clear_queue()
-                self.connect_to_vscode_server()
-                self.clear_component()
-                self.expire_component_solution()
-                continue
+            try:
+                if not self.is_connected:
+                    self.connect_to_vscode_server()
+                    self.clear_component()
+                    self.expire_component_solution()
+                    continue
 
-            self.event_fire_msg.wait()
-            self.send_message()
+                self.event_fire_msg.wait()
 
-    def clear_queue(self):
-        with self.lock_queue_msg:
-            while not self.queue_msg.empty():
-                self.queue_msg.get()
-                self.queue_msg.task_done()
-                self.event_fire_msg.set()
-                self.event_fire_msg.clear()
+                with self.lock_queue_msg:
+                    if self.queue_msg is not None:
+                        if not self.queue_msg.empty():
+                            msg = self.queue_msg.get()
+                            self.queue_msg.task_done()
+                            self.event_fire_msg.set()
+                            self.event_fire_msg.clear()
+                            self.client_socket.send(msg)
 
-    def send_message(self):
-        with self.lock_queue_msg:
-            if self.queue_msg and not self.queue_msg.empty():
-                msg = self.queue_msg.get()
-                self.queue_msg.task_done()
-                self.event_fire_msg.set()
-                self.event_fire_msg.clear()
-                self.client_socket.send(msg)
+            #FIXME: readjust this catching
+            except Exception as e:
+                self.add_runtime_warning(f"script-sync::Error from run: {str(e)}")
+                self.is_connected = False
+                self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.client_socket.close()
+        return
 
     def connect_to_vscode_server(self):
+        """ Connect to the VSCode server. """
         while self.component_on_canvas and not self.is_connected:
             try:
                 self.client_socket.send(b"")
                 self.is_connected = True
             except socket.error:
-                self.handle_connection_error()
-
-    def handle_connection_error(self):
-        try:
-            self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
-            self.is_connected = True
-        except (ConnectionRefusedError, ConnectionResetError, socket.error) as e:
-            self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
-            self.is_connected = False
-            if isinstance(e, socket.error) and e.winerror == 10056:
-                self.is_connected = True
-        finally:
-            time.sleep(self.connect_refresh_rate)
+                try:
+                    self.client_socket.connect((self.vscode_server_ip, self.vscode_server_port))
+                    self.is_connected = True
+                    break
+                except ConnectionRefusedError:
+                    self.add_runtime_warning("script-sync::Connection refused by the vscode-server")
+                    self.is_connected = False
+                except ConnectionResetError:
+                    self.add_runtime_warning("script-sync::Connection was forcibly closed by the vscode-server")
+                    self.is_connected = False
+                except socket.error as e:
+                    if e.winerror == 10056:
+                        self.add_runtime_warning(f"script-sync::A connect request was made on an already connected socket")
+                        self.is_connected = True
+                        break
+                    else:
+                        self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+                except Exception as e:
+                    self.add_runtime_warning(f"script-sync::Error connecting to the vscode-server: {str(e)}")
+            finally:
+                time.sleep(self.connect_refresh_rate)
+        # if self.is_connected:
+        #     self.client_socket.send("script-sync:: from GHcomponent:\n\n".encode())
 
 
 class FileChangedThread(GHThread):
@@ -223,7 +236,7 @@ class ScriptSyncCPy(component):
 
         self.is_success = False
 
-        self.client_thread_name = None
+        self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
         self.vscode_server_ip = "127.0.0.1"
         self.vscode_server_port = 58260
         self.stdout = None
@@ -231,7 +244,7 @@ class ScriptSyncCPy(component):
         self.queue_msg_lock = threading.Lock()
         self.event_fire_msg = threading.Event()
 
-        self.filechanged_thread_name = None
+        self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
         self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
         self.path_lock = threading.Lock()
 
@@ -253,7 +266,7 @@ class ScriptSyncCPy(component):
         # clear the path from the table view
         del self.path
 
-    def _add_button(self):
+    def add_button(self):
         """Add a button to the canvas and wire it to the "script" param."""
         # get the "script" param by name
         script_param = [param for param in ghenv.Component.Params.Input if param.Name == "script"][0]
@@ -282,7 +295,7 @@ class ScriptSyncCPy(component):
 
         return True
 
-    def _safe_exec(self, path, globals, locals):
+    def safe_exec(self, path, globals, locals):
         """
             Execute Python3 code safely. It redirects the output of the code
             to a string buffer 'stdout' to output to the GH component param.
@@ -302,6 +315,13 @@ class ScriptSyncCPy(component):
                 # parse the code
                 code = compile(f.read(), path, 'exec')
                 output = io.StringIO()
+
+                # empty the queue and event
+                with self.queue_msg_lock:
+                    while not self.queue_msg.empty():
+                        self.queue_msg.get()
+                        self.queue_msg.task_done()
+                self.event_fire_msg.clear()
 
                 # execute the code
                 with contextlib.redirect_stdout(output):
@@ -330,8 +350,12 @@ class ScriptSyncCPy(component):
 
         except Exception as e:
 
-            # send the error to the vscode server
-            self.queue_msg.put(str(e))
+            # send the error message to the vscode server
+            err_json = json.dumps({"script_path": self.path,
+                                    "guid": str(ghenv.Component.InstanceGuid),
+                                    "msg": "err:" + str(e)})
+            err_json = err_json.encode('utf-8')
+            self.queue_msg.put(err_json)
             self.event_fire_msg.set()
             
             sys.stdout = sys.__stdout__
@@ -344,7 +368,7 @@ class ScriptSyncCPy(component):
             This method is called as soon as the component has been
             placed on the canvas and before the script is run.
         """
-        self._add_button()
+        self.add_button()
 
     def RunScript(self,
                   script : bool,
@@ -371,12 +395,11 @@ class ScriptSyncCPy(component):
             raise Exception("script-sync::File does not exist")
 
         # file change listener thread
-        self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
+        
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
             FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
 
         # set up the tcp client to connect to the vscode server
-        self.client_thread_name : str = f"script-sync-client-thread::{ghenv.Component.InstanceGuid}"
         _ = [print(t.name) for t in threading.enumerate()]
         if self.client_thread_name not in [t.name for t in threading.enumerate()]:
             ClientThread(self.vscode_server_ip,
@@ -388,7 +411,7 @@ class ScriptSyncCPy(component):
                         ).start()
 
         # run the script
-        res = self._safe_exec(self.path, globals(), locals())
+        res = self.safe_exec(self.path, globals(), locals())
         self.is_success = True
         return
 
