@@ -17,7 +17,7 @@
 #! python3
 
 def main():
-    k = 1234444
+    k = 12333
     print(f"runner_script_2.py::k value: {k}")
 
     return a

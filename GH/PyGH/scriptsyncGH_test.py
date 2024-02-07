@@ -200,32 +200,33 @@ class FileChangedThread(GHThread):
     """
     def __init__(self,
                 path : str,
-                path_lock : threading.Lock,
-                name : str):
+                name : str
+                ):
         super().__init__(name=name)
         self.path = path
-        self.path_lock = path_lock
         self.refresh_rate = 1000  # milliseconds
+        self._on_file_changed = threading.Event()
 
     def run(self):
-        """ Run the thread. """
-        self.check_file_change(self.path, self.path_lock)
-
-    def check_file_change(self, path : str, path_lock : threading.Lock) -> None:
         """
             Check if the file has changed on disk.
             
             :param path: The path of the file to check.
             :param path_lock: The lock for the path.
         """
-        with path_lock:
-            last_modified = os.path.getmtime(path)
-            while self.component_on_canvas:
-                System.Threading.Thread.Sleep(self.refresh_rate)
-                current_modified = os.path.getmtime(path)
-                if current_modified != last_modified:
-                    last_modified = current_modified
-                    self.expire_component_solution()
+        last_modified = os.path.getmtime(self.path)
+        while self.component_on_canvas and not self._on_file_changed.is_set():
+            System.Threading.Thread.Sleep(self.refresh_rate)
+            current_modified = os.path.getmtime(self.path)
+            if current_modified != last_modified:
+                last_modified = current_modified
+                self.expire_component_solution()
+        self._on_file_changed.clear()
+        return
+
+    def stop(self):
+        """ Stop the thread. """
+        self._on_file_changed.set()
 
 
 class ScriptSyncCPy(component):
@@ -246,7 +247,6 @@ class ScriptSyncCPy(component):
 
         self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
         self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
-        self.path_lock = threading.Lock()
 
     def RemovedFromDocument(self, doc):
         """ Remove the component from the document. """
@@ -395,9 +395,10 @@ class ScriptSyncCPy(component):
             raise Exception("script-sync::File does not exist")
 
         # file change listener thread
-        
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
-            FileChangedThread(self.path, self.path_lock, self.filechanged_thread_name).start()
+            FileChangedThread(self.path,
+                              self.filechanged_thread_name
+                              ).start()
 
         # set up the tcp client to connect to the vscode server
         _ = [print(t.name) for t in threading.enumerate()]
@@ -449,6 +450,9 @@ class ScriptSyncCPy(component):
 
         script_name = os.path.basename(path)
         ghenv.Component.Message = f"{script_name}"
+
+        if self.filechanged_thread_name in [t.name for t in threading.enumerate()]:
+            _ = [t for t in threading.enumerate() if t.name == self.filechanged_thread_name][0].stop()
 
     @path.deleter
     def path(self):

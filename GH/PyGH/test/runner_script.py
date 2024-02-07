@@ -17,8 +17,8 @@
 #! python3
 
 def main():
-    x = 123
-    y = 45
+    x = 12344
+    y = 453
     a = x - y
     c = x + y
     b = 12345
