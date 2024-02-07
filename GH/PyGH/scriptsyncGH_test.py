@@ -233,7 +233,6 @@ class ScriptSyncCPy(component):
     def __init__(self):
         super(ScriptSyncCPy, self).__init__()
         self._var_output = []
-        ghenv.Component.Message = "no-script-selected"
 
         self.is_success = False
 
@@ -247,6 +246,8 @@ class ScriptSyncCPy(component):
 
         self.filechanged_thread_name : str = f"script-sync-fileChanged-thread::{ghenv.Component.InstanceGuid}"
         self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
+        if self.path is None:
+            ghenv.Component.Message = "select-script"
 
     def RemovedFromDocument(self, doc):
         """ Remove the component from the document. """
