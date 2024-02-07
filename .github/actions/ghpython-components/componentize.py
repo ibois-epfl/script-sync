@@ -235,6 +235,7 @@ def create_ghuser_component(source, target, version=None, prefix=None):
     root.SetString("Name", prefix + data["name"])
     root.SetString("NickName", data["nickname"])
     root.SetString("Description", data.get("description", ""))
+    root.SetString("ToolTip", data.get("description", ""))
     root.SetInt32("Exposure", data.get("exposure", EXPOSURE["default"]))
     root.SetString("Category", data["category"])
     root.SetString("SubCategory", data["subcategory"])
@@ -280,6 +281,7 @@ def create_ghuser_component(source, target, version=None, prefix=None):
         pi_chunk.SetString("NickName", pi.get("nickname") or pi["name"])
         pi_chunk.SetString("Description", pi.get("description"))
         pi_chunk.SetBoolean("Optional", pi.get("optional", True))
+        pi_chunk.SetString("ToolTip", pi.get("description", ""))
         pi_chunk.SetBoolean("AllowTreeAccess", pi.get("allowTreeAccess", True))
         pi_chunk.SetBoolean("ShowTypeHints", pi.get("showTypeHints", True))
         pi_chunk.SetInt32(
@@ -306,6 +308,7 @@ def create_ghuser_component(source, target, version=None, prefix=None):
         po_chunk.SetString("Name", po["name"])
         po_chunk.SetString("NickName", po.get("nickname") or po["name"])
         po_chunk.SetString("Description", po.get("description"))
+        po_chunk.SetString("ToolTip", po.get("description", ""))
         po_chunk.SetBoolean("Optional", po.get("optional", False))
         po_chunk.SetInt32("SourceCount", po.get("sourceCount", 0))
         po_chunk.SetGuid("InstanceGuid", output_instance_guid)

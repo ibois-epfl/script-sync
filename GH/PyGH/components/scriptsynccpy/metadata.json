@@ -5,15 +5,29 @@
     "subcategory": "vscode",
     "description": "This allows to run the current active cpython file from vscode to grasshopper.",
     "exposure": 4,
-    "instanceGuid": "afa031c5-0df6-4ded-aaa0-6a69bdeedce2",
+    "instanceGuid": "35050cd7-1a60-466a-bb77-e4446167980f",
     "ghpython": {
         "marshalGuids": true,
         "iconDisplay": 2,
         "inputParameters": [
             {
+                "name": "btn",
+                "nickname": "btn",
+                "description": "Connect a button to open a file dialog to select a cpython file to run.",
+                "optional": false,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "item",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "bool",
+                "reverse": false,
+                "simplify": false
+            },
+            {
                 "name": "x",
                 "nickname": "x",
-                "description": "The X value of the component.",
+                "description": "A generic x input.",
                 "optional": true,
                 "allowTreeAccess": true,
                 "showTypeHints": true,
@@ -22,19 +36,6 @@
                 "sourceCount": 0,
                 "typeHintID": "float",
                 "reverse": false,
-                "simplify": false
-            },
-            {
-                "name": "y",
-                "nickname": "y",
-                "description": "The Y value of the component.",
-                "optional": true,
-                "allowTreeAccess": true,
-                "showTypeHints": true,
-                "scriptParamAccess": "item",
-                "wireDisplay": "default",
-                "sourceCount": 0,
-                "typeHintID": "float",
                 "simplify": false
             }
         ],
@@ -49,7 +50,7 @@
             {
                 "name": "a",
                 "nickname": "a",
-                "description": "Generic output of the component",
+                "description": "Generic example output of the component",
                 "optional": false,
                 "sourceCount": 0
             }
