@@ -14,6 +14,7 @@ let lastReceivedMessage: { guid: any; } | null = null;
 function startServer() {
     isLogging = true;
     server = net.createServer((socket) => {
+        socket.setTimeout(0);
         connections.push(socket);
         socket.on('end', () => {
             connections = connections.filter(conn => conn !== socket);
