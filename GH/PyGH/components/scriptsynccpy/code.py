@@ -294,7 +294,7 @@ class ScriptSyncCPy(component):
         try:
             with open(path, 'r') as f:
                 # add the path of the file to use the modules
-                path_dir = self.path.split("\\")
+                path_dir = path.split("\\")
                 path_dir = "\\".join(path_dir[:-1])
                 sys.path.insert(0, path_dir)
 
@@ -315,7 +315,7 @@ class ScriptSyncCPy(component):
                 locals["stdout"] = output.getvalue()
 
                 # send the msg to the vscode server
-                msg_json = json.dumps({"script_path": self.path,
+                msg_json = json.dumps({"script_path": path,
                                        "guid": str(ghenv.Component.InstanceGuid),
                                        "msg": output.getvalue()})
                 msg_json = msg_json.encode('utf-8')
@@ -337,7 +337,7 @@ class ScriptSyncCPy(component):
         except Exception as e:
 
             # send the error message to the vscode server
-            err_json = json.dumps({"script_path": self.path,
+            err_json = json.dumps({"script_path": path,
                                     "guid": str(ghenv.Component.InstanceGuid),
                                     "msg": "err:" + str(e)})
             err_json = err_json.encode('utf-8')
@@ -349,9 +349,7 @@ class ScriptSyncCPy(component):
             err_msg = f"script-sync::Error in the code: {str(e)}"
             raise Exception(err_msg)
 
-    def RunScript(self,
-                  btn : bool,
-                  x : int):
+    def RunScript(self, btn: bool, x: float):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
 
         self.is_success = False
@@ -377,7 +375,7 @@ class ScriptSyncCPy(component):
                         ).start()
 
         # run the script
-        res = self.safe_exec(self.path, globals(), locals())
+        res = self.safe_exec(self.path, None, globals())
         self.is_success = True
         return
 
