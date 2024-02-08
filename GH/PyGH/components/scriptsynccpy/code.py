@@ -19,12 +19,6 @@ import threading
 import queue
 import json
 
-# note that these import if used with "as" needs to be imported in the code
-import Rhino as r
-import Rhino.Geometry as rg
-import scriptcontext as sc
-import rhinoscriptsyntax as rs
-
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
