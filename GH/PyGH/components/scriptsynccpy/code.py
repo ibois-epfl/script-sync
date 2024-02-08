@@ -374,7 +374,8 @@ class ScriptSyncCPy(component):
                         self.event_fire_msg
                         ).start()
 
-        # run the script
+        # run the script (* we pass the globals() to the locals() to use the modules
+        # and nested functions in the script)
         res = self.safe_exec(self.path, None, globals())
         self.is_success = True
         return
