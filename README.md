@@ -13,6 +13,7 @@ Rhino/VSCode plug-in to run C# and Python (IronPython or CPython) scripts direct
 
 ![record_vid_gif20fps](https://github.com/ibois-epfl/script-sync/assets/50238678/7ccb2aa5-e646-45cd-9657-95776d24a48a)
 
+
 ## Installation
 Install script-sync rhino from food4rhino or the packageManager in Rhino (name: "script-sync").
 Install script-syncVSCode extention from the VSCode extension marketplace (name: "script-sync")
