@@ -1,5 +1,10 @@
 name: GHUserComponent
-on: [push]
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build_ghuser_components:

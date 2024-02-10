@@ -1,10 +1,10 @@
 #! python3
 
 def main(x):
-    y = 4533
+    y = 123
     a = x - y
     c = x + y
-    b = 12345
+    b = 123
     print("runner_script.py::main() function called")
     print(f"runner_script.py::a value: {a}")
     print(f"runner_script.py::b value: {b}")
