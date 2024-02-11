@@ -73,7 +73,7 @@ For Python files, add a `shebang` to the first line of the file to specify the i
 * `#! python3` to interpret it with CPython
 * ⚠️ `#! python2` to interpret it with IronPython (only in Rhino)
 
-## Requirements
+## **Requirements**
 The plug-in needs to be installed on RhinoV8, Grasshopper and VSCode
 
 ## Caveats

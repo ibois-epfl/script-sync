@@ -22,10 +22,10 @@ script_sync-1.0.2-rh8-win/
 The `manifest.yml` file should look like this:
 ```yml
 name: script-sync
-version: 1.0.2
+version: 1.**1**.0
 authors:
   - Andrea Settimi
-description: Script-sync is a Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
+description: Script-sync is a Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8 and Grasshopper.
 url: https://github.com/ibois-epfl/script-sync
 keywords:
   - Rhino
