@@ -10,14 +10,25 @@
 
 # script-sync
 
-Rhino/VSCode plug-in to run C# and Python (IronPython or CPython) scripts directly from VSCode. This project is part of the research activities of the [IBOIS lab](https://www.epfl.ch/labs/ibois/) at EPFL. It was developed and currently maintained by [Andrea Settimi](https://github.com/9and3).
+Rhino+Grasshopper<-->VSCode plug-in to run C# and Python (IronPython or CPython) scripts directly from VSCode. This project is a teaching utility from the [IBOIS lab](https://www.epfl.ch/labs/ibois/) at EPFL. It was developed and currently maintained by [Andrea Settimi](https://github.com/9and3).
+
+|               | CPython | IronPython  | C# |
+| ------------- | ------  | ----------- | -- |
+| Rhino         | ✅      | ✅          | ✅|
+| Grasshopper   | ✅      |             |    |
+
+## Rhino
 
 ![record_vid_gif20fps](https://github.com/ibois-epfl/script-sync/assets/50238678/7ccb2aa5-e646-45cd-9657-95776d24a48a)
+
+## Grasshopper
+
+![record_gh](https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/vid/scriptsync_gh.gif?raw=true)
 
 
 ## Installation
 Install script-sync rhino from food4rhino or the packageManager in Rhino (name: "script-sync").
-Install script-syncVSCode extention from the VSCode extension marketplace (name: "script-sync")
+Install script-syncVSCode extension from the VSCode extension marketplace (name: "script-sync")
 
 ## How to use
 To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8. This will start a server that listens to commands from VSCode.
