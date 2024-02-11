@@ -52,22 +52,11 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 <figure align="center">
     <img src="https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/img/single_comp.png?raw=true" width="550">
     <figcaption><i>Script-sync in Grasshopper: 
-    <style>
-    ul {
-      list-style-type: none;
-    }
-    ul li:before {
-      content: "- ";
-    }
-    </style>
-
-  <ul>
-    <li><code>btn</code>: click to open a file explorer and connect a script</li>
-    <li><code>x</code>: classical input parameter, you can add more</li>
-    <li><code>stdout</code>: all errors and print() is deviated here</li>
-    <li><code>a</code>: classical output parameter, you can add more</li>
-  </ul></i>
-    </figcaption>
+        <li><code>btn</code>: click to open a file explorer and connect a script</li>
+        <li><code>x</code>: classical input parameter, you can add more</li>
+        <li><code>stdout</code>: all errors and print() is deviated here</li>
+        <li><code>a</code>: classical output parameter, you can add more</li>
+    </i></figcaption>
 </figure>
 
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
