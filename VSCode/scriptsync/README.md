@@ -62,17 +62,11 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 🦏 **`Rhino`**: To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8. This will start a server that listens to commands from VSCode.
 To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 
-🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync:
+🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync: <code>btn</code>: click to open a file explorer and connect a script, <code>x</code>: classical input parameter, you can add more, <code>stdout</code>: all errors and print() is deviated here, <code>a</code>: classical output parameter, you can add more.
 
-<figure align="center">
+<p  align="center">
     <img src="https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/img/single_comp.png?raw=true" width="550">
-    <figcaption><i>Script-sync in Grasshopper: 
-        <li><code>btn</code>: click to open a file explorer and connect a script</li>
-        <li><code>x</code>: classical input parameter, you can add more</li>
-        <li><code>stdout</code>: all errors and print() is deviated here</li>
-        <li><code>a</code>: classical output parameter, you can add more</li>
-    </i></figcaption>
-</figure>
+</p>
 
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
 For Python files, add a `shebang` to the first line of the file to specify the interpreter to use, e.g.:
