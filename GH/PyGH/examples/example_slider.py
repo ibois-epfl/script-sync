@@ -1,7 +1,7 @@
 #! python3
 
 def main(x):
-    y = 123
+    y = 123 
     a = x - y
     c = x + y
     b = 123

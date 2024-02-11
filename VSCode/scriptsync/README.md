@@ -40,9 +40,49 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 
 🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync:
 
+<p float="left">
+  <figure>
+    <img src="https://github.com/ibois-epfl/script-sync/assets/50238678/7ccb2aa5-e646-45cd-9657-95776d24a48a" width="100%" />
+    <figcaption><i>Script-sync in Rhino</i></figcaption>
+  </figure>
+
+  <figure>
+    <img src="https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/vid/scriptsync_gh.gif?raw=true" width="100%" />
+    <figcaption><i>Script-sync in Grasshopper</i></figcaption>
+  </figure>
+</p>
+
+
+## Installation
+🦏/🦗 **`Rhino/Grasshopper`**: Install script-sync rhino from food4rhino or the packageManager in Rhino (name: "script-sync"). For Grasshopper you might want to get rid of the old version of the plugin before installing the new one. Just right-click on the old icon and click *delete*.
+
+👩‍💻 **`VScode`**: Install script-syncVSCode extension from the VSCode extension marketplace (name: "script-sync")
+
+## How to use
+🦏 **`Rhino`**: To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8. This will start a server that listens to commands from VSCode.
+To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
+
+🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync:
+
 <figure align="center">
     <img src="https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/img/single_comp.png?raw=true" width="550">
-    <figcaption><i>Script-sync in Grasshopper</i></figcaption>
+    <figcaption><i>Script-sync in Grasshopper: 
+    <style>
+    ul {
+      list-style-type: none;
+    }
+    ul li:before {
+      content: "- ";
+    }
+    </style>
+
+  <ul>
+    <li><code>btn</code>: click to open a file explorer and connect a script</li>
+    <li><code>x</code>: classical input parameter, you can add more</li>
+    <li><code>stdout</code>: all errors and print() is deviated here</li>
+    <li><code>a</code>: classical output parameter, you can add more</li>
+  </ul></i>
+    </figcaption>
 </figure>
 
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
