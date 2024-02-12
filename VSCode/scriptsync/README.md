@@ -9,7 +9,7 @@ You can execute the folloing languages from VSCode with script-sync:
 
 |               | CPython | IronPython  | C# |
 | ------------- | ------  | ----------- | -- |
-| Rhino         | ✅      | ✅          | ✅|
+| Rhino         | ✅      | ✅          | ✅ |
 | Grasshopper   | ✅      |             |    |
 
 
