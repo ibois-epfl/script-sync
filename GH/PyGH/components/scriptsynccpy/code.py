@@ -288,8 +288,7 @@ class ScriptSyncCPy(component):
         try:
             with open(path, 'r') as f:
                 # add the path of the file to use the modules
-                path_dir = path.split("\\")
-                path_dir = "\\".join(path_dir[:-1])
+                path_dir = os.path.dirname(path)
                 sys.path.insert(0, path_dir)
 
                 # parse the code
@@ -386,9 +385,15 @@ class ScriptSyncCPy(component):
         outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
         
+        # TODO: add the conversion to datatree for nested lists and tuples
         for idx, outp in enumerate(outparam):
-            ghenv.Component.Params.Output[idx].VolatileData.Clear()
-            ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+            # detect if the output is a list
+            if type(self._var_output[idx]) == list or type(self._var_output[idx]) == tuple:
+                ghenv.Component.Params.Output[idx].VolatileData.Clear()
+                ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
+            else:
+                ghenv.Component.Params.Output[idx].VolatileData.Clear()
+                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output.clear()
 
     @property
