@@ -19,6 +19,9 @@ import threading
 import queue
 import json
 
+import importlib
+import sys
+
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -275,6 +278,13 @@ class ScriptSyncCPy(component):
         if not os.path.exists(self.path):
             raise Exception("script-sync::File does not exist")
     
+    def reload_all_modules(directory):
+        for filename in os.listdir(directory):
+        if filename.endswith('.py') and filename != '__init__.py':
+            module_name = filename[:-3]  # remove '.py' from filename
+            if module_name in sys.modules:
+                importlib.reload(sys.modules[module_name])
+
     def safe_exec(self, path, globals, locals):
         """
             Execute Python3 code safely. It redirects the output of the code
@@ -290,6 +300,9 @@ class ScriptSyncCPy(component):
                 # add the path of the file to use the modules
                 path_dir = os.path.dirname(path)
                 sys.path.insert(0, path_dir)
+                reload_all_modules(path_dir)
+
+                self.reload_all_modules(path_dir)
 
                 # parse the code
                 code = compile(f.read(), path, 'exec')
