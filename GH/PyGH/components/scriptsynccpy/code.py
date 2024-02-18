@@ -4,6 +4,7 @@ import System
 import System.Drawing
 import System.Windows.Forms
 import Rhino
+import Grasshopper
 import Grasshopper as gh
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as RML
 import sys
