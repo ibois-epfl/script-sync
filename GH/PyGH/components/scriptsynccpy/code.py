@@ -298,10 +298,22 @@ class ScriptSyncCPy(component):
         """
         try:
             with open(path, 'r') as f:
-                # add the path of the file to use the modules
+                # add the path and sub directories to the sys path
                 path_dir = os.path.dirname(path)
-                sys.path.insert(0, path_dir)
+                sub_dirs = []
+                for root, dirs, files in os.walk(path_dir):
+                    for d in dirs:
+                        sub_dirs.append(os.path.join(root, d))
+                sys.path.extend([path_dir] + sub_dirs)
+
+                # reload all the modules also of the sub directories
+                for root, dirs, files in os.walk(path_dir):
+                    for d in dirs:
+                        self.reload_all_modules(os.path.join(root, d))
                 self.reload_all_modules(path_dir)
+
+                # refresh the python interpreter
+                importlib.invalidate_caches()
 
                 # parse the code
                 code = compile(f.read(), path, 'exec')
