@@ -1,4 +1,9 @@
-name: YakBuild
+name: PublishScriptSync
+
+# TODO: switch to this one
+# on:
+#   release:
+#     types: [published]
 
 on:
   push:
@@ -7,30 +12,47 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build_yak:
     runs-on: windows-latest
-
+  
     steps:
     - uses: actions/checkout@v2
-
+  
     - name: Python setup
       uses: actions/setup-python@v2
       with:
           python-version: '3.x'
-
+  
     - name: Install dependencies
       run: |
           python -m pip install --upgrade pip
           pip install invoke
-
+  
     - name: Install .NET Framework 4.8
       uses: microsoft/setup-msbuild@v1.0.2
-
+  
     - name: Run Invoke tasks
       run: invoke yakerize
-
+  
     - name: Save artifact
       uses: actions/upload-artifact@v2
       with:
         name: scriptsync_yak_package
         path: yaker/build/*.yak
+
+  publish_yak:
+    needs: build_yak
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Publish to Yak test server
+      run: |
+        $YAK_FILE=$(ls *.yak)
+        echo "Yak file: $YAK_FILE"
+        ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
+      working-directory: yaker/build
+      env:
+        YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+
+
