@@ -62,6 +62,7 @@ jobs:
       working-directory: yaker\build
       env:
         YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+      continue-on-error: true
 
     - name: Verify the Yak package
       run: |
