@@ -28,3 +28,10 @@ jobs:
 
     - name: Run Invoke tasks
       run: invoke yakerize
+
+    #store the artifact .yak contained
+    - name: Save artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: scriptsync_yak_package
+        path: yaker/build/*.yak
