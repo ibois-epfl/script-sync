@@ -10,3 +10,8 @@ def yakerize(c):
 def vscerize(c):
     path_vscerize : str = "./invokes/vscerize.py"
     c.run(f"python {path_vscerize}")
+
+@task
+def sync_version(c):
+    path_sync_version : str = "./invokes/sync_version.py"
+    c.run(f"python {path_sync_version}")
