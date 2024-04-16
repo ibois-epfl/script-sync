@@ -56,23 +56,23 @@ jobs:
         path: yaker\build
     
     # before run this get a token from your local machine with `yak.exe login --ci`
-    # this is a dummy test
-    - name: Publish to Yak test server
-      run: |
-        $YAK_FILE=$(ls *.yak)
-        echo "Yak file: $YAK_FILE"
-        ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
-      working-directory: yaker\build
-      env:
-        YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-      continue-on-error: true
-    # this is also a dummy test
-    - name: Verify the Yak test package
-      run: |
-        ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
-      working-directory: yaker\build
-      env:
-          YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    # # this is a dummy test
+    # - name: Publish to Yak test server
+    #   run: |
+    #     $YAK_FILE=$(ls *.yak)
+    #     echo "Yak file: $YAK_FILE"
+    #     ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
+    #   working-directory: yaker\build
+    #   env:
+    #     YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    #   continue-on-error: true
+    # # this is also a dummy test
+    # - name: Verify the Yak test package
+    #   run: |
+    #     ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
+    #   working-directory: yaker\build
+    #   env:
+    #       YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
     # real release
     - name: Publish to Yak test server
       run: |
@@ -82,7 +82,6 @@ jobs:
       working-directory: yaker\build
       env:
         YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-      continue-on-error: true
     # check the real release
     - name: Verify the Yak test package
       run: |
@@ -115,7 +114,7 @@ jobs:
           pip install invoke
 
     - name: Sync version
-      run: invoke sync_version
+      run: invoke syncv
 
     - name: Install vsce
       run: npm install -g vsce

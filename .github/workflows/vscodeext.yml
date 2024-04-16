@@ -30,7 +30,7 @@ jobs:
           pip install invoke
 
     - name: Sync version
-      run: invoke sync_version
+      run: invoke syncv
 
     - name: Install vsce
       run: npm install -g vsce
