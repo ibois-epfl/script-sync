@@ -1,0 +1,16 @@
+---
+name: script-sync
+version: 1.1.4
+authors:
+- Andrea Settimi
+description: Script-sync is a Rhino plug-in to run C# and Python (IronPython or CPython) in RhinoV8.
+url: https://github.com/ibois-epfl/script-sync
+keywords:
+- Rhino
+- Cs
+- Python
+- IronPython
+- CPython
+- VScode
+- Utility
+icon: logo.png
