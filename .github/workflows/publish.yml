@@ -12,6 +12,7 @@ on:
     branches: [ main ]
 
 jobs:
+  ########################### yak ############################
   build_yak:
     runs-on: windows-latest
   
@@ -28,10 +29,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install invoke
   
+    # install dotnet for building the RhinoCs plugin
     - name: Install .NET Framework 4.8
       uses: microsoft/setup-msbuild@v1.0.2
   
-    - name: Run Invoke tasks
+    - name: Run Invoke Yakerizer task
       run: invoke yakerize
   
     - name: Save artifact
@@ -54,6 +56,7 @@ jobs:
         path: yaker\build
     
     # before run this get a token from your local machine with `yak.exe login --ci`
+    # this is a dummy test
     - name: Publish to Yak test server
       run: |
         $YAK_FILE=$(ls *.yak)
@@ -63,13 +66,97 @@ jobs:
       env:
         YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
       continue-on-error: true
-
-    - name: Verify the Yak package
+    # this is also a dummy test
+    - name: Verify the Yak test package
       run: |
         ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
       working-directory: yaker\build
       env:
           YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    # real release
+    - name: Publish to Yak test server
+      run: |
+        $YAK_FILE=$(ls *.yak)
+        echo "Yak file: $YAK_FILE"
+        ..\exec\Yak.exe push $YAK_FILE
+      working-directory: yaker\build
+      env:
+        YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+      continue-on-error: true
+    # check the real release
+    - name: Verify the Yak test package
+      run: |
+        ..\exec\Yak.exe search --all --prerelease script-sync
+      working-directory: yaker\build
+      env:
+          YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+
+  ########################### vsix ############################
+  build_vsix:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Python setup
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.x'
+    
+    - name: Install pip and invoke
+      run: |
+          python -m pip install --upgrade pip
+          pip install invoke
+
+    - name: Install vsce
+      run: npm install -g vsce
+
+    - name: Run Invoke Vscerizer task
+      run: invoke vscerize
+
+    - name: Save artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: script-sync
+        path: VSCode\scriptsync\*.vsix
+
+  publish_vsix:
+    needs: build_vsix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install dependencies cli
+      run: npm ci
+
+    - name: Install VSCE
+      run: npm install -g vsce
+
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: script-sync
+        path: VSCode\scriptsync
+
+    - name: Publish to VSCode Marketplace
+      run: |
+        cd VSCode\scriptsync
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
+
+    - name: Verify the VSCode Marketplace package
+      run: |
+        vsce show script-sync
 
 
 
