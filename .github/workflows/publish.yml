@@ -143,9 +143,6 @@ jobs:
       with:
         node-version: '14'
 
-    - name: Install dependencies cli
-      run: npm ci
-
     - name: Install VSCE
       run: npm install -g vsce
 
