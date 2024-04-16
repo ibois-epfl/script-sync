@@ -49,6 +49,7 @@ jobs:
 
     - name: List directory contents
       run: dir
+      working-directory: yaker\build
     
     - name: Publish to Yak test server
       run: |
