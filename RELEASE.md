@@ -39,7 +39,7 @@ icon: logo.png
 ```
 Now, create the `.yak` package by running the following command in the terminal:
 ```terminal
-yak build script_sync-1.0.2-rh8-win
+yak build
 ```
 The `.yak` package is created in the folder `script_sync-1.0.2-rh8-win.yak`.
 
@@ -57,6 +57,14 @@ Script-sync is released as a `.vsix` package via the VSCE executable provided by
 
 ### Build the VSCode extension
 Start by building the VSCode extension as described in the [contribution guideline](#contribution-guideline). OR, grab the latest version of the extension from the artifacts of the latest successful build on the latest e.g., [CI](https://github.com/ibois-epfl/script-sync/actions/runs/7349030262).
+
+Make sure to change the correct version number in the `package.json` file.
+```json
+  "version": "1.1.4",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+```
 
 ### Publish the `.vsix` package to the VSCode marketplace
 To upload the package to the VSCode marketplace, run the following command in the terminal in the folder containing the `.vsix` file:
