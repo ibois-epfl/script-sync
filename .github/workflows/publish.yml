@@ -53,6 +53,7 @@ jobs:
         name: scriptsync_yak_package
         path: yaker\build
     
+    # before run this get a token from your local machine with `yak.exe login --ci`
     - name: Publish to Yak test server
       run: |
         $YAK_FILE=$(ls *.yak)
@@ -64,8 +65,7 @@ jobs:
 
     - name: Verify the Yak package
       run: |
-        $NAME_PACKAGE=$(script-sync)
-        ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease $NAME_PACKAGE
+        ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
       working-directory: yaker\build
       env:
           YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
