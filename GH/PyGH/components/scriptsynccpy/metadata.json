@@ -25,6 +25,20 @@
                 "simplify": false
             },
             {
+                "name": "packages_2_reload",
+                "nickname": "packages_2_reload",
+                "description": "Pass a list with the name of the custom packages you want to reload. This function is useful if you are developing a i.e. PyPI package and you want to reload the submodules after you modified something. The function will reload the package and all its submodules. If you want to reload the package and all its submodules, just pass the package name. If you want to reload only a submodule, pass the package name and the submodule name separated by a dot. If you want to reload multiple submodules, pass the package",
+                "optional": true,
+                "allowTreeAccess": true,
+                "showTypeHints": true,
+                "scriptParamAccess": "list",
+                "wireDisplay": "default",
+                "sourceCount": 0,
+                "typeHintID": "str",
+                "reverse": false,
+                "simplify": false
+            },
+            {
                 "name": "x",
                 "nickname": "x",
                 "description": "A generic x input.",

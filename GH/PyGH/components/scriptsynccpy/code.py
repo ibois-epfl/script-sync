@@ -176,7 +176,6 @@ class ClientThread(GHThread):
         self.add_runtime_warning(error_messages[type(e)])
         self.is_connected = False if type(e) != socket.error or e.winerror != 10056 else True
 
-
 class FileChangedThread(GHThread):
     """
         A thread to check if the file has changed on disk.
@@ -286,7 +285,7 @@ class ScriptSyncCPy(component):
                 if module_name in sys.modules:
                     importlib.reload(sys.modules[module_name])
 
-    def safe_exec(self, path, globals, locals):
+    def safe_exec(self, path, globals, locals, packages_2_reload):
         """
             Execute Python3 code safely. It redirects the output of the code
             to a string buffer 'stdout' to output to the GH component param.
@@ -295,10 +294,20 @@ class ScriptSyncCPy(component):
             :param path: The path of the file to execute.
             :param globals: The globals dictionary.
             :param locals: The locals dictionary.
+            :param packages_2_reload: The list of packages to reload, this is used for custom packages developement.
+            installed on the system via an editable pip installation for example.
         """
         try:
             with open(path, 'r') as f:
-                # add the path and sub directories to the sys path
+                # reload the specifyed packages
+                if packages_2_reload is not None:
+                    if packages_2_reload.__len__() != 0:
+                        for package in packages_2_reload:
+                            for key in list(sys.modules.keys()):
+                                if package in key:
+                                    importlib.reload(sys.modules[key])
+
+                # add the path and sub directories to  the sys path
                 path_dir = os.path.dirname(path)
                 sub_dirs = []
                 for root, dirs, files in os.walk(path_dir):
@@ -366,9 +375,12 @@ class ScriptSyncCPy(component):
             err_msg = f"script-sync::Error in the code: {str(e)}"
             raise Exception(err_msg)
 
-    def RunScript(self, btn: bool, x: float):
+    def RunScript(self,
+        btn: bool,
+        packages_2_reload : list,
+        x: float
+    ):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
-
         self.is_success = False
 
         # set the path if button is pressed
@@ -394,7 +406,7 @@ class ScriptSyncCPy(component):
         # add to the globals all the input parameters of the component (the locals)
         globals().update(locals())
 
-        res = self.safe_exec(self.path, None, globals())
+        res = self.safe_exec(self.path, None, globals(), packages_2_reload)
         self.is_success = True
         return
 
