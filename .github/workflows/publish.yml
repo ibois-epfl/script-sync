@@ -46,6 +46,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: List directory contents
+      run: dir
     
     - name: Publish to Yak test server
       run: |
