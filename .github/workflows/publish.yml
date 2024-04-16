@@ -156,10 +156,11 @@ jobs:
       run: |
         cd VSCode\scriptsync
         vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
+      working-directory: VSCode\scriptsync
 
     - name: Verify the VSCode Marketplace package
       run: |
-        vsce show script-sync
+        vsce show ibois-epfl.script-sync
 
 
 
