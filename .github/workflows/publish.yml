@@ -38,11 +38,12 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: scriptsync_yak_package
-        path: yaker/build/*.yak
+        path: yaker\build\*.yak
 
   publish_yak:
     needs: build_yak
     runs-on: windows-latest
+
     steps:
     - uses: actions/checkout@v2
     
@@ -51,8 +52,17 @@ jobs:
         $YAK_FILE=$(ls *.yak)
         echo "Yak file: $YAK_FILE"
         ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
-      working-directory: yaker/build
+      working-directory: yaker\build
       env:
         YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+
+    - name: Verify the Yak package
+      run: |
+        $NAME_PACKAGE=$(script-sync)
+        ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease $NAME_PACKAGE
+      working-directory: yaker\build
+      env:
+          YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+
 
 
