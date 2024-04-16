@@ -146,8 +146,8 @@ jobs:
     - name: Install VSCE
       run: npm install -g vsce
 
-    - name: Install VSCE dependencies
-      run: npm install
+    - name: Install TypeScript
+      run: npm install -g typescript
 
     - name: Download artifact
       uses: actions/download-artifact@v2
