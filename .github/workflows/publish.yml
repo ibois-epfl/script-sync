@@ -47,9 +47,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: List directory contents
-      run: dir
-      working-directory: yaker\build
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: scriptsync_yak_package
+        path: yaker\build
     
     - name: Publish to Yak test server
       run: |
