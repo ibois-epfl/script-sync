@@ -163,6 +163,7 @@ jobs:
 
     - name: Publish to VSCode Marketplace
       run: |
+        cd VSCode\scriptsync
         vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
       # working-directory: VSCode\scriptsync
 
