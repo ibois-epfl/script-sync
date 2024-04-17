@@ -14,7 +14,6 @@ git clone https://github.com/ibois-epfl/script-sync.git
 To build the Rhino plug-in, you need to have RhinoV8 installed on your machine. You can download it from [here](https://www.rhino3d.com/download/rhino-for-windows/8/latest).
 Be sure that dotnet is installed on your machine. You can download it from [here](https://dotnet.microsoft.com/download/dotnet/5.0).
 
-### Build the Rhino plug-in
 Checkout the folder containing the Rhino plug-in.
 ```terminal
 cd .\CsRhino\
@@ -26,21 +25,20 @@ dotnet build
 The plug-in is built in the folder `.\CsRhino\bin\`.
 To test it remove all versions of the plug-in from RhinoV8 and drag-and-drop the `.rhp` file in RhinoV8. No need to redo it after each build, it will be updated if you close and reopen RhinoV8.
 
-## For VSCode extension
-To build the the VSCode extension, you need to have VSCode installed on your machine. You can download it from [here](https://code.visualstudio.com/download).
-Be sure that nodejs is installed on your machine. You can download it from [here](https://nodejs.org/en/download/).
-Also `vsce` needs to be installed on your machine. You can install it by running the following command in the terminal.
+## Build the VSCode extension
+Run the python invoke:
 ```terminal
-npm install -g vsce
+invoke vscerize
 ```
+The `.vsix` file is created in `VSCode/scriptsync/`. You can install it in VSCode by dragging-and-dropping it in the Extensions panel.
 
-### Build the VSCode extension
-Checkout the folder containing the VSCode extension.
+## Build the YAK package
+Be sure to update the correct number version in the `manifest.yml` file in root.
+Next call the python task:
 ```terminal
-cd .\VSCode\scriptsync\
+invoke yakerize
 ```
-Do modifications to the code and build the extension. The main file is `extension.ts` and additional info or variables can be found in `package.json`.
-```terminal
-vsce package
-```
-A new `.vsix` file is created in the folder. To test it, open VSCode and install the extension from the `.vsix` file. To do so, open the extensions panel, click on the three dots on the top right corner and select `Install from VSIX...`. Select the `.vsix` file and reload VSCode. Otherwise you can right-click the `.vsix` file and select `Install..`. Reload VSCode.
+This will create a `.yak` file in the root folder. You can install it in RhinoV8 by dragging-and-dropping it in RhinoV8.
+
+## Release
+The `.yak` and `.vsix` will be generated and published online when a release is created on GitHub. The version number is the same as the one in the `manifest.yml` file.
