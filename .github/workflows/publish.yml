@@ -143,42 +143,32 @@ jobs:
       with:
         node-version: '14'
 
+    - name: Install VSCE
+      run: npm install -g vsce
+
+    - name: Install TypeScript
+      run: npm install -g typescript
+
     - name: Install dependencies
-      run: npm install
-    - name: Publish to VSCode Marketplace
-      run: cd VSCode/scriptsync
-    - uses: lannonbr/vsce-action@3.0.0
+      run: |
+        npm install
+        npm install @types/vscode
+        npm install @types/jest --save-dev
+
+    - name: Download artifact
+      uses: actions/download-artifact@v2
       with:
-        args: "publish -p $VSCE_TOKEN"
-      env:
-        VSCE_TOKEN: ${{ secrets.AZURE_OP_TOKEN }}
+        name: script-sync
+        path: VSCode\scriptsync
 
-    # - name: Install VSCE
-    #   run: npm install -g vsce
+    - name: Publish to VSCode Marketplace
+      run: |
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
+      working-directory: VSCode\scriptsync
 
-    # - name: Install TypeScript
-    #   run: npm install -g typescript
-
-    # - name: Install dependencies
-    #   run: |
-    #     npm install
-    #     npm install @types/vscode
-    #     npm install @types/jest --save-dev
-
-    # - name: Download artifact
-    #   uses: actions/download-artifact@v2
-    #   with:
-    #     name: script-sync
-    #     path: VSCode\scriptsync
-
-    # - name: Publish to VSCode Marketplace
-    #   run: |
-    #     vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
-    #   working-directory: VSCode\scriptsync
-
-    # - name: Verify the VSCode Marketplace package
-    #   run: |
-    #     vsce show ibois-epfl.script-sync
+    - name: Verify the VSCode Marketplace package
+      run: |
+        vsce show ibois-epfl.script-sync
 
 
 
