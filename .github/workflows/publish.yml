@@ -1,15 +1,15 @@
 name: PublishScriptSync
 
 # FIXME: bring back when ready
-# on:
-#   release:
-#     types: [published]
-
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  release:
+    types: [published]
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
 
 jobs:
   ########################### yak ############################
@@ -203,11 +203,11 @@ jobs:
         name: script-sync-vsix
         path: VSCode/scriptsync
 
-    # list what's in the directory VSCode\scriptsync
-    - name: List VSIX artifact
-      run: |
-        ls -la VSCode/scriptsync
-      shell: bash
+    # # list what's in the directory VSCode\scriptsync
+    # - name: List VSIX artifact
+    #   run: |
+    #     ls -la VSCode/scriptsync
+    #   shell: bash
 
     # get the path of the name terminating with .vsix and set it to a variable
     - name: Get VSIX artifact path and save it to an output
@@ -215,42 +215,36 @@ jobs:
       run: |
         echo "::set-output name=vsix_path::$(find VSCode/scriptsync -name '*.vsix')"
       shell: bash
-
-    # get the path of the name terminating with .yak
     - name: Get YAK artifact path
       id: get_yak_path
       run: |
         echo "::set-output name=yak_path::$(find yaker/build -name '*.yak')"
       shell: bash
-
-    # print the variable to see if it's correct
     - name: Print VSIX artifact path
       run: |
         echo ${{ steps.get_vsix_path.outputs.vsix_path }}
       shell: bash
-
     - name: Print YAK artifact path
       run: |
         echo ${{ steps.get_yak_path.outputs.yak_path }}
       shell: bash
 
+    - name: Upload .vsix artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }} 
+        asset_path: ${{ steps.get_vsix_path.outputs.vsix_path }}
+        asset_name: script-sync-vsix.vsix
+        asset_content_type: application/octet-stream
 
-    # - name: Upload .vsix artifact
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ github.event.release.upload_url }} 
-    #     asset_path: ./VSCode/scriptsync/script-sync-vsix
-    #     asset_name: script-sync-vsix.vsix
-    #     asset_content_type: application/octet-stream
-
-    # - name: Upload .yak artifact
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ github.event.release.upload_url }} 
-    #     asset_path: ./yaker/build/scriptsync_yak_package
-    #     asset_name: scriptsync_yak_package.yak
-    #     asset_content_type: application/octet-stream
+    - name: Upload .yak artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }} 
+        asset_path: ${{ steps.get_yak_path.outputs.yak_path }}
+        asset_name: script-sync.yak
+        asset_content_type: application/octet-stream
