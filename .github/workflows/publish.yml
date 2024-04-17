@@ -133,7 +133,7 @@ jobs:
 
   publish_vsix:
     needs: build_vsix
-    runs-on: ubuntu-latest  # windows-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -163,9 +163,8 @@ jobs:
 
     - name: Publish to VSCode Marketplace
       run: |
-        cd VSCode\scriptsync
         vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
-      # working-directory: VSCode\scriptsync
+      working-directory: .\VSCode\scriptsync
 
     - name: Verify the VSCode Marketplace package
       run: |
