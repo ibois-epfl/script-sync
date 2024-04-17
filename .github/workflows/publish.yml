@@ -1,15 +1,8 @@
 name: PublishScriptSync
 
-# FIXME: bring back when ready
 on:
   release:
     types: [published]
-
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
 
 jobs:
   ########################### yak ############################
@@ -42,53 +35,53 @@ jobs:
         name: scriptsync_yak_package
         path: yaker\build\*.yak
 
-  # publish_yak:
-  #   needs: build_yak
-  #   runs-on: windows-latest
+  publish_yak:
+    needs: build_yak
+    runs-on: windows-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v2
+    steps:
+    - uses: actions/checkout@v2
 
-  #   - name: Download artifact
-  #     uses: actions/download-artifact@v2
-  #     with:
-  #       name: scriptsync_yak_package
-  #       path: yaker\build
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: scriptsync_yak_package
+        path: yaker\build
     
-  #   # before run this get a token from your local machine with `yak.exe login --ci`
-  #   # # this is a dummy test
-  #   # - name: Publish to Yak test server
-  #   #   run: |
-  #   #     $YAK_FILE=$(ls *.yak)
-  #   #     echo "Yak file: $YAK_FILE"
-  #   #     ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
-  #   #   working-directory: yaker\build
-  #   #   env:
-  #   #     YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-  #   #   continue-on-error: true
-  #   # # this is also a dummy test
-  #   # - name: Verify the Yak test package
-  #   #   run: |
-  #   #     ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
-  #   #   working-directory: yaker\build
-  #   #   env:
-  #   #       YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-  #   # real release
-  #   - name: Publish to Yak test server
-  #     run: |
-  #       $YAK_FILE=$(ls *.yak)
-  #       echo "Yak file: $YAK_FILE"
-  #       ..\exec\Yak.exe push $YAK_FILE
-  #     working-directory: yaker\build
-  #     env:
-  #       YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-  #   # check the real release
-  #   - name: Verify the Yak test package
-  #     run: |
-  #       ..\exec\Yak.exe search --all --prerelease script-sync
-  #     working-directory: yaker\build
-  #     env:
-  #         YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    # before run this get a token from your local machine with `yak.exe login --ci`
+    # # this is a dummy test
+    # - name: Publish to Yak test server
+    #   run: |
+    #     $YAK_FILE=$(ls *.yak)
+    #     echo "Yak file: $YAK_FILE"
+    #     ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
+    #   working-directory: yaker\build
+    #   env:
+    #     YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    #   continue-on-error: true
+    # # this is also a dummy test
+    # - name: Verify the Yak test package
+    #   run: |
+    #     ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
+    #   working-directory: yaker\build
+    #   env:
+    #       YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    # real release
+    - name: Publish to Yak test server
+      run: |
+        $YAK_FILE=$(ls *.yak)
+        echo "Yak file: $YAK_FILE"
+        ..\exec\Yak.exe push $YAK_FILE
+      working-directory: yaker\build
+      env:
+        YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    # check the real release
+    - name: Verify the Yak test package
+      run: |
+        ..\exec\Yak.exe search --all --prerelease script-sync
+      working-directory: yaker\build
+      env:
+          YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
 
   ########################### vsix ############################
   build_vsix:
@@ -131,57 +124,57 @@ jobs:
         name: script-sync-vsix
         path: VSCode/scriptsync/*.vsix
 
-  # publish_vsix:
-  #   needs: build_vsix
-  #   runs-on: windows-latest
+  publish_vsix:
+    needs: build_vsix
+    runs-on: windows-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v2
+    steps:
+    - uses: actions/checkout@v2
 
-  #   - name: Setup Node.js environment
-  #     uses: actions/setup-node@v2
-  #     with:
-  #       node-version: '14'
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
 
-  #   - name: Python setup
-  #     uses: actions/setup-python@v2
-  #     with:
-  #         python-version: '3.x'
+    - name: Python setup
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.x'
 
-  #   - name: Install pip and invoke
-  #     run: |
-  #         python -m pip install --upgrade pip
-  #         pip install invoke
+    - name: Install pip and invoke
+      run: |
+          python -m pip install --upgrade pip
+          pip install invoke
 
-  #   - name: Sync version
-  #     run: invoke syncv
+    - name: Sync version
+      run: invoke syncv
 
-  #   - name: Install VSCE
-  #     run: npm install -g vsce
+    - name: Install VSCE
+      run: npm install -g vsce
 
-  #   - name: Install TypeScript
-  #     run: npm install -g typescript
+    - name: Install TypeScript
+      run: npm install -g typescript
 
-  #   - name: Install dependencies
-  #     run: |
-  #       npm install
-  #       npm install @types/vscode
-  #       npm install @types/mocha --save-dev  # Replace this line
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install @types/vscode
+        npm install @types/mocha --save-dev  # Replace this line
 
-  #   - name: Download artifact
-  #     uses: actions/download-artifact@v2
-  #     with:
-  #       name: script-sync-vsix
-  #       path: VSCode\scriptsync
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: script-sync-vsix
+        path: VSCode\scriptsync
 
-  #   - name: Publish to VSCode Marketplace
-  #     run: |
-  #       vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
-  #     working-directory: .\VSCode\scriptsync
+    - name: Publish to VSCode Marketplace
+      run: |
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
+      working-directory: .\VSCode\scriptsync
 
-  #   - name: Verify the VSCode Marketplace package
-  #     run: |
-  #       vsce show ibois-epfl.script-sync
+    - name: Verify the VSCode Marketplace package
+      run: |
+        vsce show ibois-epfl.script-sync
 
   ########################### release artifacts ############################
   release_artifacts:
