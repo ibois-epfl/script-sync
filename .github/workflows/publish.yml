@@ -163,8 +163,7 @@ jobs:
 
     - name: Publish to VSCode Marketplace
       run: |
-        $VSCE_FILE=$(ls VSCode\scriptsync\*.vsix)
-        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }} --packagePath $VSCE_FILE
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
       working-directory: .\VSCode\scriptsync
 
     - name: Verify the VSCode Marketplace package
