@@ -187,13 +187,13 @@ jobs:
     - name: Download Yak artifact
       uses: actions/download-artifact@v2
       with:
-        name: scriptsync_yak_package.yak
+        name: scriptsync_yak_package
         path: yaker\build
 
     - name: Download VSIX artifact
       uses: actions/download-artifact@v2
       with:
-        name: script-sync-vsix.vsix
+        name: script-sync-vsix
         path: VSCode\scriptsync
 
     - name: Upload .vsix artifact
