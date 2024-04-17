@@ -202,7 +202,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: ./VSCode/scriptsync/VSCode/scriptsync/script-sync-vsix
+        asset_path: ./VSCode/scriptsync/script-sync-vsix.vsix
         asset_name: script-sync-vsix.vsix
         asset_content_type: application/octet-stream
 
@@ -212,6 +212,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: ./yaker/build/scriptsync_yak_package
+        asset_path: ./yaker/build/scriptsync_yak_package.yak
         asset_name: scriptsync_yak_package.yak
         asset_content_type: application/octet-stream
