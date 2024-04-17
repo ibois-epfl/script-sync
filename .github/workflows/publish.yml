@@ -1,8 +1,15 @@
 name: PublishScriptSync
 
+# FIXME: bring back when ready
+# on:
+#   release:
+#     types: [published]
+
 on:
-  release:
-    types: [published]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   ########################### yak ############################
@@ -188,13 +195,13 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: scriptsync_yak_package
-        path: yaker\build
+        path: yaker/build
 
     - name: Download VSIX artifact
       uses: actions/download-artifact@v2
       with:
         name: script-sync-vsix
-        path: VSCode\scriptsync
+        path: VSCode/scriptsync
 
     # list what's in the directory VSCode\scriptsync
     - name: List VSIX artifact
@@ -202,22 +209,22 @@ jobs:
         ls -la VSCode/scriptsync
       shell: bash
 
-    - name: Upload .vsix artifact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: ./VSCode/scriptsync/script-sync-vsix
-        asset_name: script-sync-vsix.vsix
-        asset_content_type: application/octet-stream
+    # - name: Upload .vsix artifact
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ github.event.release.upload_url }} 
+    #     asset_path: ./VSCode/scriptsync/script-sync-vsix
+    #     asset_name: script-sync-vsix.vsix
+    #     asset_content_type: application/octet-stream
 
-    - name: Upload .yak artifact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: ./yaker/build/scriptsync_yak_package
-        asset_name: scriptsync_yak_package.yak
-        asset_content_type: application/octet-stream
+    # - name: Upload .yak artifact
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ github.event.release.upload_url }} 
+    #     asset_path: ./yaker/build/scriptsync_yak_package
+    #     asset_name: scriptsync_yak_package.yak
+    #     asset_content_type: application/octet-stream
