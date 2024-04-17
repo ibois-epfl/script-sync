@@ -163,5 +163,42 @@ jobs:
       run: |
         vsce show ibois-epfl.script-sync
 
+  ########################### release artifacts ############################
+  release_artifacts:
+    needs: [publish_yak, publish_vsix]
+    runs-on: windows-latest
 
+    steps:
+    - uses: actions/checkout@v2
 
+    - name: Download Yak artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: scriptsync_yak_package
+        path: yaker\build
+
+    - name: Download VSIX artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: script-sync-vsix
+        path: VSCode\scriptsync
+
+    - name: Upload .vsix artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }} 
+        asset_path: ./VSCode/scriptsync/script-sync-vsix
+        asset_name: script-sync-vsix.vsix
+        asset_content_type: application/octet-stream
+
+    - name: Upload .yak artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }} 
+        asset_path: ./yaker/build/scriptsync_yak_package
+        asset_name: scriptsync_yak_package.yak
+        asset_content_type: application/octet-stream
