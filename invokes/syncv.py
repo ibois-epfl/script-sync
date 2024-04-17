@@ -12,11 +12,11 @@ import shutil
 
 def main() -> None:
     # the  vsce extension project
-    vsceproject_dir : str = "./VSCode/scriptsync"
+    vsceproject_dir : str = "VSCode/scriptsync"
     # the json settings file for the VSCE extention
-    json_settings_path : str = "./VSCode/scriptsync/package.json"
+    json_settings_path : str = "VSCode/scriptsync/package.json"
     # the yak manifest from which we get the version
-    manifest_path : str = "./manifest.yml"
+    manifest_path : str = "manifest.yml"
 
     # update version number from the manifest file
     version : str = ""
@@ -38,3 +38,7 @@ def main() -> None:
     with open(json_settings_path, "w") as file:
         file.writelines(new_lines)
     print("Updated the version number in the package.json file.")
+
+if __name__ == "__main__":
+    main()
+    print("Synced the version number between the yak and the VSCE extension.")

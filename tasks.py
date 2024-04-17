@@ -13,5 +13,5 @@ def vscerize(c):
 
 @task
 def syncv(c):
-    path_sync_version : str = "./invokes/sync_version.py"
-    c.run(f"python {path_sync_version}")
+    path_sync_version : str = "./invokes/syncv.py"
+    c.run(f"python {path_sync_version}", hide=False, warn=True)
