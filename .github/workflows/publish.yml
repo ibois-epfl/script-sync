@@ -223,6 +223,17 @@ jobs:
         echo "::set-output name=yak_path::$(find yaker/build -name '*.yak')"
       shell: bash
 
+    # print the variable to see if it's correct
+    - name: Print VSIX artifact path
+      run: |
+        echo ${{ steps.get_vsix_path.outputs.vsix_path }}
+      shell: bash
+
+    - name: Print YAK artifact path
+      run: |
+        echo ${{ steps.get_yak_path.outputs.yak_path }}
+      shell: bash
+
 
     # - name: Upload .vsix artifact
     #   uses: actions/upload-release-asset@v1
