@@ -209,6 +209,21 @@ jobs:
         ls -la VSCode/scriptsync
       shell: bash
 
+    # get the path of the name terminating with .vsix and set it to a variable
+    - name: Get VSIX artifact path and save it to an output
+      id: get_vsix_path
+      run: |
+        echo "::set-output name=vsix_path::$(find VSCode/scriptsync -name '*.vsix')"
+      shell: bash
+
+    # get the path of the name terminating with .yak
+    - name: Get YAK artifact path
+      id: get_yak_path
+      run: |
+        echo "::set-output name=yak_path::$(find yaker/build -name '*.yak')"
+      shell: bash
+
+
     # - name: Upload .vsix artifact
     #   uses: actions/upload-release-asset@v1
     #   env:
