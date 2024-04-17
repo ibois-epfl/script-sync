@@ -187,13 +187,13 @@ jobs:
     - name: Download Yak artifact
       uses: actions/download-artifact@v2
       with:
-        name: scriptsync_yak_package
+        name: scriptsync_yak_package.yak
         path: yaker\build
 
     - name: Download VSIX artifact
       uses: actions/download-artifact@v2
       with:
-        name: script-sync-vsix
+        name: script-sync-vsix.vsix
         path: VSCode\scriptsync
 
     - name: Upload .vsix artifact
@@ -202,7 +202,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }} 
-        asset_path: ./VSCode/scriptsync/VSCode/scriptsync/script-sync-vsix
+        asset_path: ./VSCode/scriptsync/VSCode/scriptsync/script-sync-vsix.vsix
         asset_name: script-sync-vsix.vsix
         asset_content_type: application/octet-stream
 
