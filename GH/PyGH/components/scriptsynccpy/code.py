@@ -305,7 +305,9 @@ class ScriptSyncCPy(component):
                         for package in packages_2_reload:
                             for key in list(sys.modules.keys()):
                                 if package in key:
-                                    importlib.reload(sys.modules[key])
+                                    #check that the package must have the attribute __file__ (to avoid reloading pyd)
+                                    if hasattr(sys.modules[key], '__file__'):
+                                        importlib.reload(sys.modules[key])
 
                 # add the path and sub directories to  the sys path
                 path_dir = os.path.dirname(path)
