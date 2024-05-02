@@ -75,15 +75,4 @@ All contributions are welcome. Have a look at the [contribution guidelines](CONT
 There are a lot of plug-ins that allow to run Python in Rhino. Among them, [CodeListener](https://github.com/ccc159/CodeListener) was working until RhinoV8 and it was a source of inspiration for this project. This is a simplified version, but it can run `C#` and both `IronPython` and `CPython` in RhinoV8.
 
 # For code maintainers
-Follow the instructions in [RELEASE.md](RELEASE.md) to release a new version of the package.
-
-## Roadmap
-- [x] publish yak package + auto pipeline
-- [x] publish on tools website lab
-- [x] add instructions for dev and contribution
-- [x] write ci
-- [ ] write tests
-- [ ] ci action to publish automatic releases
-- [ ] possibly redirect output from RhinoApp.RunScript() to vscode consoles or log file
-- [ ] add intellisense for C# and Python Rhino in vscode
-- [ ] (optional) add C# support for Grasshopper
+Packages are published (`.yak` and `.vsix`)  automatically when a GitHub release is created.
