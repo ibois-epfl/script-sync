@@ -47,6 +47,10 @@ jobs:
       with:
         name: scriptsync_yak_package
         path: yaker\build
+
+    - name: GHComponentize
+      run: |
+        
     
     # before run this get a token from your local machine with `yak.exe login --ci`
     # # this is a dummy test

@@ -37,9 +37,9 @@ def main() -> None:
     # Py Components
     #####################################################################
     # the cpy_componentizer script
-    componentizercpy_path : str = r".github\actions\ghpython-components\componentize.py"
+    componentizercpy_path : str = r"./invokes/ghcomponentize/ghcomponentizer.py"
     # where the components are stored
-    components_dir : str = r".\GH\PyGH\components"
+    components_dir : str = r"./GH/PyGH/components"
     # the ghio folder
     ghio_dir : str = os.path.join(path_yakerdir, "ghio")
     print(ghio_dir)
