@@ -15,12 +15,13 @@ jobs:
     - name: Python setup
       uses: actions/setup-python@v2
       with:
-          python-version: '3.x'
+          python-version: '3.9.10'
   
     - name: Install dependencies
       run: |
           python -m pip install --upgrade pip
           pip install invoke
+          pip install pythonnet
   
     # install dotnet for building the RhinoCs plugin
     - name: Install .NET Framework 4.8
@@ -42,27 +43,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Python and pythonnet
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9.10'
-
-    - name: Install dependencies
-      run: |
-          python -m pip install --upgrade pip
-          pip install invoke
-          pip install pythonnet
-
     - name: Download artifact
       uses: actions/download-artifact@v2
       with:
         name: scriptsync_yak_package
         path: yaker\build
 
-    - name: GHComponentize
-      run: |
-        
-    
     # before run this get a token from your local machine with `yak.exe login --ci`
     # # this is a dummy test
     # - name: Publish to Yak test server
