@@ -445,6 +445,10 @@ class ScriptSyncCPy(component):
         self.is_success = True
         return
 
+    def is_nested_iterable(self, lst):
+        """ Detect if a list is nested. """
+        return any(isinstance(i, list) for i in lst)
+
     def AfterRunScript(self):
         """
             This method is called as soon as the component has finished
@@ -457,12 +461,20 @@ class ScriptSyncCPy(component):
         outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
 
-        # TODO: add the conversion to datatree for nested lists and tuples
         for idx, outp in enumerate(outparam):
             # detect if the output is a list
-            if type(self._var_output[idx]) == list or type(self._var_output[idx]) == tuple:
+            if type(self._var_output[idx]) == tuple:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
+            # TODO: increase the number of nested lists they can be handles (max 2 deep for now)
+            elif type(self._var_output[idx]) == list:
+                ghenv.Component.Params.Output[idx].VolatileData.Clear()
+                if self.is_nested_iterable(self._var_output[idx]):
+                    nbr_lists_aka_branches = len(self._var_output[idx])
+                    for i in range(nbr_lists_aka_branches):
+                        ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
+                else:
+                    ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
             else:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
