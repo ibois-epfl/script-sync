@@ -23,6 +23,8 @@ import json
 import importlib
 import sys
 
+import traceback
+
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -211,6 +213,36 @@ class FileChangedThread(GHThread):
             return current_modified
         return last_modified
 
+class DialogThread(threading.Thread):
+    """
+        A vanilla thread to open a dialog to select a file. The windows form
+        is done in a thread because sometimes it blocks the main thread on which
+        the Grasshopper canvas is running.
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.path = None
+
+    def run(self):
+        """
+            Open a dialog to select a Python file.
+        """
+        dialog = System.Windows.Forms.OpenFileDialog()
+        dialog.Filter = "Python files (*.py)|*.py"
+        dialog.Title = "Select a Python file"
+        dialog.InitialDirectory = os.path.dirname("")
+        dialog.FileName = ""
+        dialog.Multiselect = False
+        dialog.CheckFileExists = True
+        dialog.CheckPathExists = True
+        dialog.RestoreDirectory = True
+
+        if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
+            self.path = dialog.FileName
+        else:
+            raise Exception("script-sync::File not selected")
+
+
 
 class ScriptSyncCPy(component):
     def __init__(self):
@@ -250,29 +282,21 @@ class ScriptSyncCPy(component):
         # clear the path from the table view
         del self.path
 
-    def init_script_path(self, btn : bool = False):
+    def init_script_path(self, select_file : bool = False):
         """
             Check if the button is pressed and load/change path script.
             
-            :param btn: A boolean of the button
+            :param select_file: A boolean of the button
         """
         # check if button is pressed
-        if btn is True:
-            dialog = System.Windows.Forms.OpenFileDialog()
-            dialog.Filter = "Python files (*.py)|*.py"
-            dialog.Title = "Select a Python file"
-            dialog.InitialDirectory = os.path.dirname("")
-            dialog.FileName = ""
-            dialog.Multiselect = False
-            dialog.CheckFileExists = True
-            dialog.CheckPathExists = True
-            dialog.RestoreDirectory = True
-            if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-                self.path = dialog.FileName
-
-        # default init stauts
-        if self.path is None:
-            raise Exception("script-sync::File not selected")
+        if select_file is True:
+            dialog_thread = DialogThread()
+            dialog_thread.start()
+            dialog_thread.join()  # Wait for the dialog to close
+            if dialog_thread.path is not None:
+                self.path = dialog_thread.path
+            else:
+                raise Exception("script-sync::File not selected")
 
         # fi file is in table view before
         if not os.path.exists(self.path):
@@ -337,6 +361,10 @@ class ScriptSyncCPy(component):
                         self.queue_msg.task_done()
                 self.event_fire_msg.clear()
 
+                # clear all the locals dictionary to avoid that the output variables stick between the component
+                # executions when it is recomputed
+                locals = {}
+
                 # execute the code
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
@@ -363,22 +391,27 @@ class ScriptSyncCPy(component):
             return locals
 
         except Exception as e:
+            # Get the traceback
+            tb = traceback.format_exc()
 
-            # send the error message to the vscode server
-            err_json = json.dumps({"script_path": path,
-                                    "guid": str(ghenv.Component.InstanceGuid),
-                                    "msg": "err:" + str(e)})
+            # Send the error message to the vscode server
+            err_json = json.dumps({
+                "script_path": path,
+                "guid": str(ghenv.Component.InstanceGuid),
+                "msg": "err:" + str(e),
+                "traceback": tb  # Include the traceback in the JSON
+            })
             err_json = err_json.encode('utf-8')
             self.queue_msg.put(err_json)
             self.event_fire_msg.set()
-            
+
             sys.stdout = sys.__stdout__
 
-            err_msg = f"script-sync::Error in the code: {str(e)}"
+            err_msg = f"script-sync::Error in the code: {str(e)}\n{tb}"
             raise Exception(err_msg)
 
     def RunScript(self,
-        btn: bool,
+        select_file: bool,
         packages_2_reload : list,
         x: float
     ):
@@ -386,7 +419,7 @@ class ScriptSyncCPy(component):
         self.is_success = False
 
         # set the path if button is pressed
-        self.init_script_path(btn)
+        self.init_script_path(select_file)
 
         # file change listener thread
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
@@ -412,6 +445,10 @@ class ScriptSyncCPy(component):
         self.is_success = True
         return
 
+    def is_nested_iterable(self, lst):
+        """ Detect if a list is nested. """
+        return any(isinstance(i, list) for i in lst)
+
     def AfterRunScript(self):
         """
             This method is called as soon as the component has finished
@@ -420,15 +457,24 @@ class ScriptSyncCPy(component):
         """
         if not self.is_success:
             return
+
         outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
-        
-        # TODO: add the conversion to datatree for nested lists and tuples
+
         for idx, outp in enumerate(outparam):
             # detect if the output is a list
-            if type(self._var_output[idx]) == list or type(self._var_output[idx]) == tuple:
+            if type(self._var_output[idx]) == tuple:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
+            # TODO: increase the number of nested lists they can be handles (max 2 deep for now)
+            elif type(self._var_output[idx]) == list:
+                ghenv.Component.Params.Output[idx].VolatileData.Clear()
+                if self.is_nested_iterable(self._var_output[idx]):
+                    nbr_lists_aka_branches = len(self._var_output[idx])
+                    for i in range(nbr_lists_aka_branches):
+                        ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
+                else:
+                    ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
             else:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
