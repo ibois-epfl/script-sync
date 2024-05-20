@@ -48,10 +48,15 @@ You can execute the folloing languages from VSCode with script-sync:
 🦏 **`Rhino`**: To start `script-sync` in RhinoV8, run the command `ScriptSyncStart` in RhinoV8. This will start a server that listens to commands from VSCode.
 To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 
-🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync: <code>btn</code>: click to open a file explorer and connect a script, <code>x</code>: classical input parameter, you can add more, <code>stdout</code>: all errors and print() is deviated here, <code>a</code>: classical output parameter, you can add more.
+🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync: 
+- <code>select_file</code>: click to open a file explorer and connect a script,
+- <code>packages_2_reload</code>: this can be empty in 90% of the cases, but if you develop a custom pypi package, (installed with editable pip mode) you can add the name of the package here to track the changes in its modules.
+- <code>x</code>: classical input parameter, you can add more, 
+- <code>stdout</code>: all errors and print() is deviated here, 
+- <code>a</code>: classical output parameter, you can add more.
 
 <p  align="center">
-    <img src="https://github.com/ibois-epfl/script-sync/blob/main/GH/PyGH/assets/img/single_comp.png?raw=true" width="550">
+    <img src="GH\PyGH\assets\img\gh_snap2.png" width="550">
 </p>
 
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
