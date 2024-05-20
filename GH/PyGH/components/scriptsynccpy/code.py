@@ -23,6 +23,8 @@ import json
 import importlib
 import sys
 
+import traceback
+
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -385,18 +387,23 @@ class ScriptSyncCPy(component):
             return locals
 
         except Exception as e:
+            # Get the traceback
+            tb = traceback.format_exc()
 
-            # send the error message to the vscode server
-            err_json = json.dumps({"script_path": path,
-                                    "guid": str(ghenv.Component.InstanceGuid),
-                                    "msg": "err:" + str(e)})
+            # Send the error message to the vscode server
+            err_json = json.dumps({
+                "script_path": path,
+                "guid": str(ghenv.Component.InstanceGuid),
+                "msg": "err:" + str(e),
+                "traceback": tb  # Include the traceback in the JSON
+            })
             err_json = err_json.encode('utf-8')
             self.queue_msg.put(err_json)
             self.event_fire_msg.set()
-            
+
             sys.stdout = sys.__stdout__
 
-            err_msg = f"script-sync::Error in the code: {str(e)}"
+            err_msg = f"script-sync::Error in the code: {str(e)}\n{tb}"
             raise Exception(err_msg)
 
     def RunScript(self,
