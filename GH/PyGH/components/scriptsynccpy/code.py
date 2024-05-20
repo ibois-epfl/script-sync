@@ -280,14 +280,14 @@ class ScriptSyncCPy(component):
         # clear the path from the table view
         del self.path
 
-    def init_script_path(self, btn : bool = False):
+    def init_script_path(self, select_file : bool = False):
         """
             Check if the button is pressed and load/change path script.
             
-            :param btn: A boolean of the button
+            :param select_file: A boolean of the button
         """
         # check if button is pressed
-        if btn is True:
+        if select_file is True:
             dialog_thread = DialogThread()
             dialog_thread.start()
             dialog_thread.join()  # Wait for the dialog to close
@@ -400,7 +400,7 @@ class ScriptSyncCPy(component):
             raise Exception(err_msg)
 
     def RunScript(self,
-        btn: bool,
+        select_file: bool,
         packages_2_reload : list,
         x: float
     ):
@@ -408,7 +408,7 @@ class ScriptSyncCPy(component):
         self.is_success = False
 
         # set the path if button is pressed
-        self.init_script_path(btn)
+        self.init_script_path(select_file)
 
         # file change listener thread
         if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:

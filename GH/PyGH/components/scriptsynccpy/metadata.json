@@ -11,8 +11,8 @@
         "iconDisplay": 2,
         "inputParameters": [
             {
-                "name": "btn",
-                "nickname": "btn",
+                "name": "select_file",
+                "nickname": "select_file",
                 "description": "Connect a button to open a file dialog to select a cpython file to run.",
                 "optional": false,
                 "allowTreeAccess": true,
