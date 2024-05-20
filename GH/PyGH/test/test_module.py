@@ -2,6 +2,11 @@
 
 import my_module
 
+import my_package_name
+# import my_package_name.module_test
+# from my_package_name import submodule
+
+
 if __name__ == "__main__":
     print("script-sync::running main()")
     my_module.print_from_my_module()

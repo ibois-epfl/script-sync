@@ -363,7 +363,11 @@ class ScriptSyncCPy(component):
 
                 # clear all the locals dictionary to avoid that the output variables stick between the component
                 # executions when it is recomputed
-                locals = {}
+                outparam = ghenv.Component.Params.Output
+                outparam_names = [p.NickName for p in outparam]
+                for outp in outparam_names:
+                    if outp in locals.keys():
+                        del locals[outp]
 
                 # execute the code
                 with contextlib.redirect_stdout(output):
@@ -379,8 +383,6 @@ class ScriptSyncCPy(component):
                 self.event_fire_msg.set()
 
                 # pass the script variables to the GH component outputs
-                outparam = ghenv.Component.Params.Output
-                outparam_names = [p.NickName for p in outparam]
                 for outp in outparam_names:
                     if outp in locals.keys():
                         self._var_output.append(locals[outp])
