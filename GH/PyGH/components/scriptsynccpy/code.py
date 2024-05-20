@@ -361,6 +361,10 @@ class ScriptSyncCPy(component):
                         self.queue_msg.task_done()
                 self.event_fire_msg.clear()
 
+                # clear all the locals dictionary to avoid that the output variables stick between the component
+                # executions when it is recomputed
+                locals = {}
+
                 # execute the code
                 with contextlib.redirect_stdout(output):
                     exec(code, globals, locals)
@@ -449,9 +453,10 @@ class ScriptSyncCPy(component):
         """
         if not self.is_success:
             return
+
         outparam = [p for p in ghenv.Component.Params.Output]
         outparam_names = [p.NickName for p in outparam]
-        
+
         # TODO: add the conversion to datatree for nested lists and tuples
         for idx, outp in enumerate(outparam):
             # detect if the output is a list
