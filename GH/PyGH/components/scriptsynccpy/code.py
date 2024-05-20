@@ -211,6 +211,36 @@ class FileChangedThread(GHThread):
             return current_modified
         return last_modified
 
+class DialogThread(threading.Thread):
+    """
+        A vanilla thread to open a dialog to select a file. The windows form
+        is done in a thread because sometimes it blocks the main thread on which
+        the Grasshopper canvas is running.
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.path = None
+
+    def run(self):
+        """
+            Open a dialog to select a Python file.
+        """
+        dialog = System.Windows.Forms.OpenFileDialog()
+        dialog.Filter = "Python files (*.py)|*.py"
+        dialog.Title = "Select a Python file"
+        dialog.InitialDirectory = os.path.dirname("")
+        dialog.FileName = ""
+        dialog.Multiselect = False
+        dialog.CheckFileExists = True
+        dialog.CheckPathExists = True
+        dialog.RestoreDirectory = True
+
+        if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
+            self.path = dialog.FileName
+        else:
+            raise Exception("script-sync::File not selected")
+
+
 
 class ScriptSyncCPy(component):
     def __init__(self):
@@ -258,21 +288,13 @@ class ScriptSyncCPy(component):
         """
         # check if button is pressed
         if btn is True:
-            dialog = System.Windows.Forms.OpenFileDialog()
-            dialog.Filter = "Python files (*.py)|*.py"
-            dialog.Title = "Select a Python file"
-            dialog.InitialDirectory = os.path.dirname("")
-            dialog.FileName = ""
-            dialog.Multiselect = False
-            dialog.CheckFileExists = True
-            dialog.CheckPathExists = True
-            dialog.RestoreDirectory = True
-            if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-                self.path = dialog.FileName
-
-        # default init stauts
-        if self.path is None:
-            raise Exception("script-sync::File not selected")
+            dialog_thread = DialogThread()
+            dialog_thread.start()
+            dialog_thread.join()  # Wait for the dialog to close
+            if dialog_thread.path is not None:
+                self.path = dialog_thread.path
+            else:
+                raise Exception("script-sync::File not selected")
 
         # fi file is in table view before
         if not os.path.exists(self.path):
