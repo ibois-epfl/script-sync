@@ -46,6 +46,27 @@ namespace ScriptSync
 
             // start the server on a new thread
             RhinoApp.WriteLine("Starting ScriptSync..");
+            // check if the IP is already in use
+            try
+            {
+                TcpListener check = new TcpListener(IPAddress.Parse(Ip), Port);
+                check.Start();
+                check.Stop();
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("Only one usage of each socket address"))
+                {
+                    RhinoApp.WriteLine("Error: there are two instances of Rhino running script-sync, only one is allowed.");
+                }
+                else
+                {
+                    RhinoApp.WriteLine("Error: " + e.Message);
+                }
+                return Rhino.Commands.Result.Failure;
+            }
+            
+            // if it is already in use by the instance of this Rhino
             if (IsRunning)
             {
                 RhinoApp.WriteLine("Server already running");
