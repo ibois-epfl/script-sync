@@ -173,7 +173,7 @@ class ClientThread(GHThread):
         error_messages = {
             ConnectionRefusedError: "script-sync::Connection refused by the vscode",
             ConnectionResetError: "script-sync::Connection was forcibly closed by the vscode",
-            socket.error: f"script-sync::Error connecting to the vscode: {str(e)}"
+            socket.error: f"script-sync::Error connecting to the vscode: {str(e)}, have you tried to press Shift+F4 on VSCode?"
         }
         self.add_runtime_warning(error_messages[type(e)])
         self.is_connected = False if type(e) != socket.error or e.winerror != 10056 else True
