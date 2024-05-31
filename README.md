@@ -67,9 +67,6 @@ For Python files, add a `shebang` to the first line of the file to specify the i
 ## Requirements
 The plug-in needs to be installed on RhinoV8, Grasshopper and VSCode
 
-## Caveats
-There is no intellisense for C# and Python in VSCode. In addi
-
 ## Issues
 For bugs open an issue on the [GitHub repo](https://github.com/ibois-epfl/script-sync/issues).
 
