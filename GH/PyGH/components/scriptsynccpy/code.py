@@ -2,8 +2,8 @@ from ghpythonlib.componentbase import executingcomponent as component
 
 import System
 import System.Drawing
-import System.Windows.Forms
 import Rhino
+import rhinoscriptsyntax as rs
 import Grasshopper
 import Grasshopper as gh
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as RML
@@ -173,7 +173,7 @@ class ClientThread(GHThread):
         error_messages = {
             ConnectionRefusedError: "script-sync::Connection refused by the vscode",
             ConnectionResetError: "script-sync::Connection was forcibly closed by the vscode",
-            socket.error: f"script-sync::Error connecting to the vscode: {str(e)}"
+            socket.error: f"script-sync::Error connecting to the vscode: {str(e)}, have you tried to press Shift+F4 on VSCode?"
         }
         self.add_runtime_warning(error_messages[type(e)])
         self.is_connected = False if type(e) != socket.error or e.winerror != 10056 else True
@@ -212,37 +212,6 @@ class FileChangedThread(GHThread):
             self.expire_component_solution()
             return current_modified
         return last_modified
-
-class DialogThread(threading.Thread):
-    """
-        A vanilla thread to open a dialog to select a file. The windows form
-        is done in a thread because sometimes it blocks the main thread on which
-        the Grasshopper canvas is running.
-    """
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.path = None
-
-    def run(self):
-        """
-            Open a dialog to select a Python file.
-        """
-        dialog = System.Windows.Forms.OpenFileDialog()
-        dialog.Filter = "Python files (*.py)|*.py"
-        dialog.Title = "Select a Python file"
-        dialog.InitialDirectory = os.path.dirname("")
-        dialog.FileName = ""
-        dialog.Multiselect = False
-        dialog.CheckFileExists = True
-        dialog.CheckPathExists = True
-        dialog.RestoreDirectory = True
-
-        if dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK:
-            self.path = dialog.FileName
-        else:
-            raise Exception("script-sync::File not selected")
-
-
 
 class ScriptSyncCPy(component):
     def __init__(self):
@@ -290,13 +259,10 @@ class ScriptSyncCPy(component):
         """
         # check if button is pressed
         if select_file is True:
-            dialog_thread = DialogThread()
-            dialog_thread.start()
-            dialog_thread.join()  # Wait for the dialog to close
-            if dialog_thread.path is not None:
-                self.path = dialog_thread.path
-            else:
-                raise Exception("script-sync::File not selected")
+            filename = rs.OpenFileName("Open", "Python Files (*.py)|*.py||")
+            if filename is None:
+                raise Exception("script-sync::No file selected")
+            self.path = filename
 
         # fi file is in table view before
         if not os.path.exists(self.path):
