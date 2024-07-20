@@ -325,7 +325,7 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                     if package_2_reload.__len__() != 0:
                         for key in list(sys.modules.keys()):
                             if package_2_reload in key:
-                                #check that the package must have the attribute __file__ (to avoid reloading pyd)
+                                # check that the package must have the attribute __file__ (to avoid reloading pyd)
                                 if hasattr(sys.modules[key], '__file__'):
                                     importlib.reload(sys.modules[key])
 
