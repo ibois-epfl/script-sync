@@ -7,6 +7,7 @@
     <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/ghuserbuild.yml/badge.svg">
     <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/yakbuild.yml/badge.svg">
     <img src="https://github.com/ibois-epfl/script-sync/actions/workflows/vscodeext.yml/badge.svg">
+    <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fyak.rhino3d.com%2Fpackages%2Fscript-sync&query=%24.version&logo=rhinoceros&label=Yak&color=%23a3d6ff">
 </p>
 
 # script-sync
