@@ -371,7 +371,20 @@ class ScriptSyncCPy(component):
 
             sys.stdout = sys.__stdout__
 
+            # for debugging purposes we include the prints before and the error message
+            err_msg_header = f"script-sync::Error in the code file {path}"
+            err_msg_sep = ">" * 30
             err_msg = f"script-sync::Error in the code: {str(e)}\n{tb}"
+            prints_before_err_msg = output.getvalue()
+            prints_before_msg = prints_before_err_msg.split("\n")
+
+
+            err_msg = err_msg_header + \
+                f"\n{err_msg_sep}\n" + "Error msg:" + f"\n{err_msg_sep}\n" + \
+                err_msg +  \
+                f"\n{err_msg_sep}\n" + "Preavious prints before error:" + f"\n{err_msg_sep}\n" + \
+                "\n".join(prints_before_msg[:-1])
+
             raise Exception(err_msg)
 
     def RunScript(self, select_file: bool, package_2_reload: str, x : int):
