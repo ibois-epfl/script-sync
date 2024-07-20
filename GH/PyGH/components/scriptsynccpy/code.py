@@ -1,5 +1,3 @@
-from ghpythonlib.componentbase import executingcomponent as component
-
 import System
 import System.Drawing
 import System.Windows.Forms
@@ -244,9 +242,8 @@ class DialogThread(threading.Thread):
 
 
 
-class ScriptSyncCPy(component):
+class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
     def __init__(self):
-        super(ScriptSyncCPy, self).__init__()
         self._var_output = []
 
         self.is_success = False
@@ -309,7 +306,7 @@ class ScriptSyncCPy(component):
                 if module_name in sys.modules:
                     importlib.reload(sys.modules[module_name])
 
-    def safe_exec(self, path, globals, locals, packages_2_reload):
+    def safe_exec(self, path, globals, locals, package_2_reload):
         """
             Execute Python3 code safely. It redirects the output of the code
             to a string buffer 'stdout' to output to the GH component param.
@@ -318,20 +315,19 @@ class ScriptSyncCPy(component):
             :param path: The path of the file to execute.
             :param globals: The globals dictionary.
             :param locals: The locals dictionary.
-            :param packages_2_reload: The list of packages to reload, this is used for custom packages developement.
+            :param package_2_reload: The list of packages to reload, this is used for custom packages developement.
             installed on the system via an editable pip installation for example.
         """
         try:
             with open(path, 'r') as f:
                 # reload the specifyed packages
-                if packages_2_reload is not None:
-                    if packages_2_reload.__len__() != 0:
-                        for package in packages_2_reload:
-                            for key in list(sys.modules.keys()):
-                                if package in key:
-                                    #check that the package must have the attribute __file__ (to avoid reloading pyd)
-                                    if hasattr(sys.modules[key], '__file__'):
-                                        importlib.reload(sys.modules[key])
+                if package_2_reload is not None:
+                    if package_2_reload.__len__() != 0:
+                        for key in list(sys.modules.keys()):
+                            if package_2_reload in key:
+                                #check that the package must have the attribute __file__ (to avoid reloading pyd)
+                                if hasattr(sys.modules[key], '__file__'):
+                                    importlib.reload(sys.modules[key])
 
                 # add the path and sub directories to  the sys path
                 path_dir = os.path.dirname(path)
@@ -412,11 +408,7 @@ class ScriptSyncCPy(component):
             err_msg = f"script-sync::Error in the code: {str(e)}\n{tb}"
             raise Exception(err_msg)
 
-    def RunScript(self,
-        select_file: bool,
-        packages_2_reload : list,
-        x: float
-    ):
+    def RunScript(self, select_file: bool, package_2_reload: str, x : int):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
         self.is_success = False
 
@@ -440,10 +432,13 @@ class ScriptSyncCPy(component):
                         self.event_fire_msg
                         ).start()
 
+        # print all the locals
+        print(locals())
+
         # add to the globals all the input parameters of the component (the locals)
         globals().update(locals())
 
-        res = self.safe_exec(self.path, None, globals(), packages_2_reload)
+        res = self.safe_exec(self.path, None, globals(), package_2_reload)
         self.is_success = True
         return
 

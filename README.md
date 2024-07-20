@@ -50,7 +50,7 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 
 🦗 **`Grasshopper`**: To start `script-sync` in Grasshopper, add the component script-sync: 
 - <code>select_file</code>: click to open a file explorer and connect a script,
-- <code>packages_2_reload</code>: this can be empty in 90% of the cases, but if you develop a custom pypi package, (installed with editable pip mode) you can add the name of the package here to track the changes in its modules.
+- <code>package_2_reload</code>: this can be empty in 90% of the cases, but if you develop a custom pypi package, (installed with editable pip mode) you can add the name of the package you are developing here to track the changes in its modules. Otherwise leave it empty.
 - <code>x</code>: classical input parameter, you can add more, 
 - <code>stdout</code>: all errors and print() is deviated here, 
 - <code>a</code>: classical output parameter, you can add more.
