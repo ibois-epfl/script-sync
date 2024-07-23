@@ -211,7 +211,7 @@ class FileChangedThread(GHThread):
             return current_modified
         return last_modified
 
-class ScriptSyncCPy(component):
+class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
     def __init__(self):
         self._var_output = []
 
@@ -284,7 +284,9 @@ class ScriptSyncCPy(component):
             :param package_2_reload: The list of packages to reload, this is used for custom packages developement.
             installed on the system via an editable pip installation for example.
         """
+        output_buffer = io.StringIO()
         try:
+            sys.stdout = output_buffer
             with open(path, 'r') as f:
                 # reload the specifyed packages
                 if package_2_reload is not None:
@@ -314,7 +316,7 @@ class ScriptSyncCPy(component):
 
                 # parse the code
                 code = compile(f.read(), path, 'exec')
-                output = io.StringIO()
+                # output = io.StringIO()
 
                 # empty the queue and event
                 with self.queue_msg_lock:
@@ -332,14 +334,14 @@ class ScriptSyncCPy(component):
                         del locals[outp]
 
                 # execute the code
-                with contextlib.redirect_stdout(output):
+                with contextlib.redirect_stdout(output_buffer):
                     exec(code, globals, locals)
-                locals["stdout"] = output.getvalue()
+                locals["stdout"] = output_buffer.getvalue()
 
                 # send the msg to the vscode server
                 msg_json = json.dumps({"script_path": path,
                                        "guid": str(ghenv.Component.InstanceGuid),
-                                       "msg": output.getvalue()})
+                                       "msg": output_buffer.getvalue()})
                 msg_json = msg_json.encode('utf-8')
                 self.queue_msg.put(msg_json)
                 self.event_fire_msg.set()
@@ -350,11 +352,10 @@ class ScriptSyncCPy(component):
                         self._var_output.append(locals[outp])
                     else:
                         self._var_output.append(None)
-
-                sys.stdout = sys.__stdout__
             return locals
 
         except Exception as e:
+            # sys.stdout = sys.__stdout__
             # Get the traceback
             tb = traceback.format_exc()
 
@@ -369,23 +370,25 @@ class ScriptSyncCPy(component):
             self.queue_msg.put(err_json)
             self.event_fire_msg.set()
 
-            sys.stdout = sys.__stdout__
-
+            # FIXME: this is not working the retrival of the previous messages
             # for debugging purposes we include the prints before and the error message
             err_msg_header = f"script-sync::Error in the code file {path}"
             err_msg_sep = ">" * 30
             err_msg = f"script-sync::Error in the code: {str(e)}\n{tb}"
-            prints_before_err_msg = output.getvalue()
+            prints_before_err_msg = output_buffer.getvalue()
             prints_before_msg = prints_before_err_msg.split("\n")
-
 
             err_msg = err_msg_header + \
                 f"\n{err_msg_sep}\n" + "Error msg:" + f"\n{err_msg_sep}\n" + \
-                err_msg +  \
-                f"\n{err_msg_sep}\n" + "Preavious prints before error:" + f"\n{err_msg_sep}\n" + \
-                "\n".join(prints_before_msg[:-1])
+                err_msg
+                # f"\n{err_msg_sep}\n" + "Preavious prints before error:" + f"\n{err_msg_sep}\n" + \
+                # "\n".join(prints_before_msg[:-1])
 
             raise Exception(err_msg)
+        
+        finally:
+            sys.stdout = sys.__stdout__
+            output_buffer.close()
 
     def RunScript(self, select_file: bool, package_2_reload: str, x : int):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
