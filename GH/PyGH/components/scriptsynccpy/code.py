@@ -432,10 +432,10 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
             its calculation. It is used to load the GHComponent outputs
             with the values created in the script.
         """
-        def _list_nesting_level(lst : typing.List):
-            """ Get the level of nesting of a list. """
-            if isinstance(lst, list):
-                return 1 + max(list_nesting_level(item) for item in lst)
+        def _nesting_level(container: typing.Union[typing.List, typing.Tuple]) -> int:
+            """ Get the level of nesting of a list or tuple. """
+            if isinstance(container, (list, tuple)):
+                return 1 + max(_nesting_level(item) for item in container)
             else:
                 return 0
 
@@ -450,21 +450,17 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         outparam_names = [p.NickName for p in outparam]
 
         for idx, outp in enumerate(outparam):
-            if type(self._var_output[idx]) == tuple:
+            if type(self._var_output[idx]) == tuple or type(self._var_output[idx]) == list:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
-            elif type(self._var_output[idx]) == list:
-                ghenv.Component.Params.Output[idx].VolatileData.Clear()
-
-                if _list_nesting_level(self._var_output[idx]) == 1:
+                if _nesting_level(self._var_output[idx]) == 1:
                     ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
-                elif _list_nesting_level(self._var_output[idx]) == 2:
-                    nbr_lists_aka_branches = len(self._var_output[idx])
-                    for i in range(nbr_lists_aka_branches):
+                elif _nesting_level(self._var_output[idx]) == 2:
+                    nbr_tuples_aka_branches = len(self._var_output[idx])
+                    for i in range(nbr_tuples_aka_branches):
                         ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
-                elif _list_nesting_level(self._var_output[idx]) > 2:
-                    nbr_lists_aka_branches = len(self._var_output[idx])
-                    for i in range(nbr_lists_aka_branches):
+                elif _nesting_level(self._var_output[idx]) > 2:
+                    nbr_tuples_aka_branches = len(self._var_output[idx])
+                    for i in range(nbr_tuples_aka_branches):
                         for j in range(len(self._var_output[idx][i])):
                             ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i, j), self._var_output[idx][i][j])
             else:
