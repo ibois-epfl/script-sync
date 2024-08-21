@@ -25,6 +25,35 @@ import sys
 
 import traceback
 
+def add_button(self,
+    nickname: str,
+    indx: int,
+    X_param_coord: float,
+    Y_param_coord: float,
+    X_offset: int=100
+    ) -> None:
+    """
+        Adds a button to the component input
+
+        :param nickname: the nickname of the button
+        :param indx: the index of the input parameter
+        :param X_param_coord: the x coordinate of the input parameter
+        :param Y_param_coord: the y coordinate of the input parameter
+        :param X_offset: the offset of the button from the input parameter
+    """
+    param = ghenv.Component.Params.Input[indx]
+    if param.SourceCount == 0:
+        button = Grasshopper.Kernel.Special.GH_ButtonObject()
+        button.NickName = ""
+        button.Description = ""
+        button.CreateAttributes()
+        button.Attributes.Pivot = System.Drawing.PointF(
+            X_param_coord - (button.Attributes.Bounds.Width) - X_offset,
+            Y_param_coord - (button.Attributes.Bounds.Height / 2 - 0.1)
+            )
+        button.Attributes.ExpireLayout()
+        Grasshopper.Instances.ActiveCanvas.Document.AddObject(button, False)
+        ghenv.Component.Params.Input[indx].AddSource(button)
 
 class GHThread(threading.Thread, metaclass=abc.ABCMeta):
     """
@@ -231,6 +260,15 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
         if self.path is None:
             ghenv.Component.Message = "select-script"
+
+        ghenv.Component.ExpireSolution(True)
+        ghenv.Component.Attributes.PerformLayout()
+        params = getattr(ghenv.Component.Params, "Input")
+        for j in range(len(params)):
+            X_cord = params[j].Attributes.Pivot.X
+            Y_cord = params[j].Attributes.InputGrip.Y
+            if params[j].Name == "select_file":
+                add_button(self, "Select file", j, X_cord, Y_cord)
 
     def RemovedFromDocument(self, doc):
         """ Remove the component from the document. """
