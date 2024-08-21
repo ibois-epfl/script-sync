@@ -200,7 +200,7 @@ class ClientThread(GHThread):
 
     def handle_connection_error(self, e):
         error_messages = {
-            ConnectionRefusedError: "script-sync::Connection refused by the vscode",
+            ConnectionRefusedError: "script-sync::Not connected to vscode",
             ConnectionResetError: "script-sync::Connection was forcibly closed by the vscode",
             socket.error: f"script-sync::Error connecting to the vscode: {str(e)}, have you tried to press Shift+F4 on VSCode?"
         }
@@ -260,6 +260,8 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         self.__path_name_table_value = "script-sync::" + "path::" + str(ghenv.Component.InstanceGuid)
         if self.path is None:
             ghenv.Component.Message = "select-script"
+        else:
+            ghenv.Component.Message = os.path.basename(self.path)
 
         ghenv.Component.ExpireSolution(True)
         ghenv.Component.Attributes.PerformLayout()
@@ -288,7 +290,7 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         # clear the path from the table view
         del self.path
 
-    def init_script_path(self, select_file : bool = False):
+    def init_script_path(self, select_file : bool = False) -> None:
         """
             Check if the button is pressed and load/change path script.
             
@@ -301,10 +303,14 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                 raise Exception("script-sync::No file selected")
             self.path = filename
 
-        # fi file is in table view before
-        if not os.path.exists(self.path):
-            raise Exception("script-sync::File does not exist")
-    
+        if self.path is None:
+            ghenv.Component.AddRuntimeMessage(RML.Remark, "script-sync::No file selected")
+            return
+        else:
+            # if file is in table view before
+            if not os.path.exists(self.path):
+                raise Exception("script-sync::File does not exist")
+
     def reload_all_modules(self, directory):
         for filename in os.listdir(directory):
             if filename.endswith('.py') and filename != '__init__.py':
@@ -434,15 +440,6 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         """ This method is called whenever the component has to be recalculated it's the solve main instance. """
         self.is_success = False
 
-        # set the path if button is pressed
-        self.init_script_path(select_file)
-
-        # file change listener thread
-        if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
-            FileChangedThread(self.path,
-                              self.filechanged_thread_name
-                              ).start()
-
         # set up the tcp client to connect to the vscode server
         _ = [print(t.name) for t in threading.enumerate()]
         if self.client_thread_name not in [t.name for t in threading.enumerate()]:
@@ -453,15 +450,28 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                         self.queue_msg_lock,
                         self.event_fire_msg
                         ).start()
+        
+        # set the path if button is pressed
+        self.init_script_path(select_file)
 
-        # print all the locals
-        print(locals())
 
-        # add to the globals all the input parameters of the component (the locals)
-        globals().update(locals())
 
-        res = self.safe_exec(self.path, None, globals(), package_2_reload)
-        self.is_success = True
+        # file change listener thread
+        if self.path is not None:
+            if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
+                FileChangedThread(self.path,
+                                self.filechanged_thread_name
+                                ).start()
+
+        
+
+            # add to the globals all the input parameters of the component (the locals)
+            globals().update(locals())
+
+            # execute the external script
+            res = self.safe_exec(self.path, None, globals(), package_2_reload)
+            self.is_success = True
+        
         return
 
     def AfterRunScript(self):
