@@ -60,6 +60,25 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
     <img src="GH\PyGH\assets\img\gh_snap2.png" width="550">
 </p>
 
+> [!TIP]
+> `script-sync` automatically converts lists and nested lists to Grasshopper data trees. Just return the python list as value. It also supports the `ghpythonlib.treehelpers` module. Example:
+> ```python
+>   # option 1
+>   py_nlist = [
+>       [[1, 2], [3, 4]],
+>       [[5, 6], [7, 8]]
+>   ]
+>
+>   # options 2
+>   import ghpythonlib.treehelpers as th
+>   gh_tree = th.list_to_tree(py_nlist)
+>
+>   o_as_nlist = py_nlist
+>   o_as_tree = gh_tree
+> ```
+> ![imgtreeconv](GH\PyGH\assets\img\listtreeauto.png)
+
+
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
 For Python files, add a `shebang` to the first line of the file to specify the interpreter to use, e.g.:
 * `#! python3` to interpret it with CPython
