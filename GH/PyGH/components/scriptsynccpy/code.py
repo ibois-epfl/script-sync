@@ -454,21 +454,19 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         # set the path if button is pressed
         self.init_script_path(select_file)
 
-
-
         # file change listener thread
+        if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
+            FileChangedThread(self.path,
+                            self.filechanged_thread_name
+                            ).start()
+
+    
+
+        # add to the globals all the input parameters of the component (the locals)
+        globals().update(locals())
+
+        # execute the external script
         if self.path is not None:
-            if self.filechanged_thread_name not in [t.name for t in threading.enumerate()]:
-                FileChangedThread(self.path,
-                                self.filechanged_thread_name
-                                ).start()
-
-        
-
-            # add to the globals all the input parameters of the component (the locals)
-            globals().update(locals())
-
-            # execute the external script
             res = self.safe_exec(self.path, None, globals(), package_2_reload)
             self.is_success = True
         
