@@ -76,7 +76,9 @@ To close `script-sync` in RhinoV8, run the command `ScriptSyncStop` in RhinoV8.
 >   o_as_nlist = py_nlist
 >   o_as_tree = gh_tree
 > ```
-> ![imgtreeconv](GH\PyGH\assets\img\listtreeauto.png)
+> <p  align="center">
+>    <img src="GH/PyGH/assets/img/listtreeauto.png" width="550">
+> </p>
 
 
 👩‍💻 **`VScode`**: Open a script in VSCode and run it in RhinoV8 by pressing `F4` to run in Rhino or `shift+F4` for Grasshopper.
