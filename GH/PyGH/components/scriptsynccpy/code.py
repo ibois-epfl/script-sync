@@ -450,6 +450,7 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         outparam_names = [p.NickName for p in outparam]
 
         for idx, outp in enumerate(outparam):
+            # case: nested lists
             if type(self._var_output[idx]) == tuple or type(self._var_output[idx]) == list:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
                 if _nesting_level(self._var_output[idx]) == 1:
@@ -465,7 +466,18 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                             ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i, j), self._var_output[idx][i][j])
             else:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+                # case: the user is returning a Grasshopper.DataTree[System.Object] via the utility ghpythonlib.treehelpers
+                # e.g.: list_tree = th.list_to_tree(list_A)
+                # this will be conserve the structure
+                if type(self._var_output[idx]) == Grasshopper.DataTree[System.Object]:
+                    branch_count = self._var_output[idx].BranchCount
+                    for i in range(branch_count):
+                        path = self._var_output[idx].Paths[i]
+                        data = self._var_output[idx].Branch(path)
+                        ghenv.Component.Params.Output[idx].AddVolatileDataList(path, data)
+                # case: simple single value
+                else:
+                    ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         self._var_output.clear()
 
     @property
