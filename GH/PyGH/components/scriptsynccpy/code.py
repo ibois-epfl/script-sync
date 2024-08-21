@@ -516,9 +516,11 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                 # e.g.: list_tree = th.list_to_tree(list_A)
                 # this will be conserve the structure
                 if type(self._var_output[idx]) == Grasshopper.DataTree[System.Object]:
+                    self._var_output[idx].SimplifyPaths()
                     branch_count = self._var_output[idx].BranchCount
                     for i in range(branch_count):
                         path = self._var_output[idx].Paths[i]
+                        print(path)
                         data = self._var_output[idx].Branch(path)
                         ghenv.Component.Params.Output[idx].AddVolatileDataList(path, data)
                 # case: simple single value
