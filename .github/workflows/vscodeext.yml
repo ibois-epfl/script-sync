@@ -32,6 +32,9 @@ jobs:
     - name: Sync version
       run: invoke syncv
 
+    - name: Install specific npm version
+      run: npm install -g npm@10.4.0
+
     - name: Install vsce
       run: npm install -g vsce
 
