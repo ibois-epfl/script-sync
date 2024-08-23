@@ -55,6 +55,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Approve pull request
+      run: |
+        PR_NUMBER=$(gh pr list --head version-sync-branch --json number --jq '.[0].number')
+        gh pr review $PR_NUMBER --approve
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Merge pull request
       run: |
         gh pr merge --squash --delete-branch  --admin
