@@ -196,9 +196,15 @@ jobs:
         name: script-sync-vsix
         path: VSCode\scriptsync
 
+    - name: Get the full path of the downloaded vsix artifact
+      id: get_vsix_path
+      run: |
+        echo "::set-output name=vsix_path::$(find VSCode/scriptsync -name '*.vsix')"
+      shell: bash
+
     - name: Publish to VSCode Marketplace
       run: |
-        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}  --packagePath VSCode\scriptsync\*.vsix
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}  --packagePath ${{ steps.get_vsix_path.outputs.vsix_path }}
       working-directory: .\VSCode\scriptsync
 
     - name: Verify the VSCode Marketplace package
@@ -209,6 +215,7 @@ jobs:
   release_artifacts:
     needs: [build_yak, build_vsix]
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
