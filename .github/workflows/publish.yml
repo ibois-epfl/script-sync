@@ -49,11 +49,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create pull request
+    - name: Close existing pull requests for version-sync-branch
       run: |
-        gh pr create --title "ACTION_BOT: Sync version for release" --body "Sync version for release" --base main --head version-sync-branch --label ACTION_BOT
+        gh pr list --state open --head version-sync-branch --json number --jq '.[].number' | ForEach-Object { gh pr close $_ }
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
 
     - name: Create pull request
       run: |
