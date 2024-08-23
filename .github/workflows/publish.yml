@@ -72,7 +72,7 @@ jobs:
                 id
               }
             }
-          }' -f prId="MDExOlB1bGxSZXF1ZXN0" + $pr
+          }' -f prId=$pr
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: pwsh
