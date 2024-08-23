@@ -26,14 +26,24 @@ jobs:
     - name: Sync version
       run: invoke syncv
 
-    - name: Commit version change
+    - name: Create new branch and commit version change
       run: |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
+        git checkout -b version-sync-branch
         git commit -am "ACTION_BOT: Sync version for release"
-        git push
+        git push --set-upstream origin version-sync-branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: version-sync-branch
+        title: "ACTION_BOT: Sync version for release"
+        body: "This PR was created automatically by the GitHub Action to sync the version for release."
+        base: main
 
   ######################## build/publish yak ##########################
   build_yak:
