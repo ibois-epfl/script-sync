@@ -32,7 +32,7 @@ jobs:
     - name: Sync version
       run: invoke syncv
 
-    - name: If exists the branch remotely version-sync-branch, delete it
+    - name: Delete branch remotely version-sync-branch (if exists)
       run: |
         git fetch --prune
         git branch -r | grep version-sync-branch && git push origin --delete version-sync-branch
@@ -49,15 +49,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create pull request without custom actions
+    - name: Create pull request
       run: |
-        gh pr create --title "ACTION_BOT: Sync version for release" --body "Sync version for release" --base main --head version-sync-branch
+        gh pr create --title "ACTION_BOT: Sync version for release" --body "Sync version for release" --base main --head version-sync-branch --label ACTION_BOT
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Merge pull request
       run: |
-        gh pr merge --squash --auto --merge --delete-branch
+        gh pr merge --squash --auto --delete-branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
