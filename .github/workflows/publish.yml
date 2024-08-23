@@ -26,9 +26,10 @@ jobs:
     - name: Sync version
       run: invoke syncv
 
-    - name: If exists the branch version-sync-branch, delete it
+    - name: If exists the branch remotely version-sync-branch, delete it
       run: |
-        git branch -D version-sync-branch || true
+        git fetch --prune
+        git branch -r | grep version-sync-branch && git push origin --delete version-sync-branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
