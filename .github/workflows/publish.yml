@@ -36,14 +36,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: version-sync-branch
-        title: "ACTION_BOT: Sync version for release"
-        body: "This PR was created automatically by the GitHub Action to sync the version for release."
-        base: main
+    - name: Merge changes to main
+      run: |
+        git checkout main
+        git pull
+        git merge version-sync-branch
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   ######################## build/publish yak ##########################
   build_yak:
