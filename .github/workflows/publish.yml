@@ -55,19 +55,18 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Approve pull request
+    - name: Create pull request
       run: |
-        $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
-        gh pr review $pr --approve
+        gh pr create --title "ACTION_BOT: Sync version for release" --body "Sync version for release" --base main --head version-sync-branch --label ACTION_BOT
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: pwsh
 
     - name: Merge pull request
       run: |
-        gh pr merge --squash --delete-branch --admin
+        $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
+        gh pr merge $pr --squash --delete-branch --admin
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       shell: pwsh
 
   ######################## build/publish yak ##########################
