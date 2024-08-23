@@ -43,15 +43,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Merge changes to main
-      run: |
-        git checkout main
-        git pull
-        git merge version-sync-branch
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: version-sync-branch
+        title: "Sync version for release"
+        body: "This pull request was created automatically by GitHub Actions."
+        base: main
 
+    - name: Merge pull request
+      uses: peter-evans/merge-pull-request@v3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        pull-request-number: ${{ steps.create_pull_request.outputs.pull-request-number }}
+        merge-method: squash
 
   ######################## build/publish yak ##########################
   build_yak:
