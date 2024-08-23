@@ -35,9 +35,14 @@ jobs:
     - name: Delete branch remotely version-sync-branch (if exists)
       run: |
         git fetch --prune
-        git branch -r | grep version-sync-branch && git push origin --delete version-sync-branch
+        if git branch -r | grep -q 'origin/version-sync-branch'; then
+          git push origin --delete version-sync-branch
+        else
+          echo "Branch version-sync-branch does not exist."
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
 
     - name: Create new branch and commit version change
       run: |
