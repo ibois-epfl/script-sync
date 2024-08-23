@@ -57,16 +57,18 @@ jobs:
 
     - name: Approve pull request
       run: |
-        PR_NUMBER=$(gh pr list --head version-sync-branch --json number --jq '.[0].number')
-        gh pr review $PR_NUMBER --approve
+        $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
+        gh pr review $pr --approve
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
 
     - name: Merge pull request
       run: |
-        gh pr merge --squash --delete-branch  --admin
+        gh pr merge --squash --delete-branch --admin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
 
   ######################## build/publish yak ##########################
   build_yak:
