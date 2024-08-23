@@ -5,9 +5,39 @@ on:
     types: [published]
 
 jobs:
-  ########################### yak ############################
+  ####################### sync version #######################
+  sync_version:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Python setup
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install invoke
+
+    - name: Sync version
+      run: invoke syncv
+
+    - name: Commit version change
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        git commit -am "ACTION_BOT: Sync version for release"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ######################## build/publish yak ##########################
   build_yak:
     runs-on: windows-latest
+    needs: sync_version
   
     steps:
     - uses: actions/checkout@v2
@@ -49,26 +79,22 @@ jobs:
         name: scriptsync_yak_package
         path: yaker\build
 
-    # before run this get a token from your local machine with `yak.exe login --ci`
-    # # this is a dummy test
-    # - name: Publish to Yak test server
-    #   run: |
-    #     $YAK_FILE=$(ls *.yak)
-    #     echo "Yak file: $YAK_FILE"
-    #     ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
-    #   working-directory: yaker\build
-    #   env:
-    #     YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-    #   continue-on-error: true
-    # # this is also a dummy test
-    # - name: Verify the Yak test package
-    #   run: |
-    #     ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
-    #   working-directory: yaker\build
-    #   env:
-    #       YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
-    # real release
     - name: Publish to Yak test server
+      run: |
+        $YAK_FILE=$(ls *.yak)
+        echo "Yak file: $YAK_FILE"
+        ..\exec\Yak.exe push --source https://test.yak.rhino3d.com $YAK_FILE
+      working-directory: yaker\build
+      env:
+        YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+      continue-on-error: true
+    - name: Verify the Yak test package
+      run: |
+        ..\exec\Yak.exe search --source https://test.yak.rhino3d.com --all --prerelease script-sync
+      working-directory: yaker\build
+      env:
+          YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
+    - name: Publish to Yak server
       run: |
         $YAK_FILE=$(ls *.yak)
         echo "Yak file: $YAK_FILE"
@@ -84,9 +110,10 @@ jobs:
       env:
           YAK_TOKEN: ${{ secrets.YAK_IBOIS_TOKEN }}
 
-  ########################### vsix ############################
+  ######################## build/publish vsix #########################
   build_vsix:
     runs-on: windows-latest
+    needs: sync_version
 
     steps:
     - name: Checkout code
@@ -104,9 +131,6 @@ jobs:
       run: |
           python -m pip install --upgrade pip
           pip install invoke
-
-    - name: Sync version
-      run: invoke syncv
 
     - name: Install vsce
       run: npm install -g vsce
@@ -143,9 +167,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install invoke
 
-    - name: Sync version
-      run: invoke syncv
-
     - name: Install VSCE
       run: npm install -g vsce
 
@@ -156,7 +177,7 @@ jobs:
       run: |
         npm install
         npm install @types/vscode
-        npm install @types/mocha --save-dev  # Replace this line
+        npm install @types/mocha --save-dev
 
     - name: Download artifact
       uses: actions/download-artifact@v2
@@ -166,14 +187,14 @@ jobs:
 
     - name: Publish to VSCode Marketplace
       run: |
-        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}
+        vsce publish -p ${{ secrets.AZURE_OP_TOKEN }}  --packagePath VSCode\scriptsync\*.vsix
       working-directory: .\VSCode\scriptsync
 
     - name: Verify the VSCode Marketplace package
       run: |
         vsce show ibois-epfl.script-sync
 
-  ########################### release artifacts ############################
+  ###################### release artifacts ########################
   release_artifacts:
     needs: [build_yak, build_vsix]
     runs-on: ubuntu-latest

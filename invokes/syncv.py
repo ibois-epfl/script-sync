@@ -1,7 +1,7 @@
 #! python3
 
 """
-    This script sync the vsce version with the yak version indicated in manifest.yml
+    This script sync the vsce version of all script-sync extensions with the yak version indicated in manifest.yml
 """
 
 from invoke import run
@@ -25,7 +25,17 @@ def main() -> None:
         for line in lines:
             if "version" in line:
                 version = line.split(":")[1].strip()
-    print(f"Script-sync yak Version: {version}")
+    print(f"Previous Script-sync yak Version: {version}")
+    # add one unit to the patch latest version number
+    patch_value = int(version.split(".")[2]) + 1
+    version = f"{version.split('.')[0]}.{version.split('.')[1]}.{patch_value}"
+    with open(manifest_path, "w") as file:
+        for i, line in enumerate(lines):
+            if "version" in line:
+                file.write(f"version: {version}\n")
+            else:
+                file.write(line)
+    print(f"New Script-sync yak Version: {version}")
 
     with open(json_settings_path, "r") as file:
         lines = file.readlines()
