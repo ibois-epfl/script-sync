@@ -74,7 +74,7 @@ jobs:
             }
           }' -f prId=$prId
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_PAT_TOKEN }}
       shell: pwsh
 
     - name: Merge pull request
