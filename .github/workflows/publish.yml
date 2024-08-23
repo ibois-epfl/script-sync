@@ -62,12 +62,27 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Approve pull request
+      run: |
+        $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
+        gh api graphql -f query='
+          mutation($prId: ID!) {
+            addPullRequestReview(input: {pullRequestId: $prId, event: APPROVE}) {
+              pullRequestReview {
+                id
+              }
+            }
+          }' -f prId="MDExOlB1bGxSZXF1ZXN0" + $pr
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
+
     - name: Merge pull request
       run: |
         $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
-        gh pr merge $pr --squash --delete-branch --admin
+        gh pr merge $pr --admin
       env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: pwsh
 
   ######################## build/publish yak ##########################
