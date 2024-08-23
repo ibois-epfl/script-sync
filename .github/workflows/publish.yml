@@ -64,7 +64,7 @@ jobs:
 
     - name: Approve pull request
       run: |
-        $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
+        $pr = $(gh pr list --head version-sync-branch --json number --jq '.[0].number')
         gh api graphql -f query='
           mutation($prId: ID!) {
             addPullRequestReview(input: {pullRequestId: $prId, event: APPROVE}) {
@@ -72,7 +72,7 @@ jobs:
                 id
               }
             }
-          }' -f prId="MDExOlB1bGxSZXF1ZXN0" + $pr
+          }' -f prId=$pr
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_PAT_TOKEN }}
       shell: pwsh
