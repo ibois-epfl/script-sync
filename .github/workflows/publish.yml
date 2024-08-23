@@ -76,7 +76,10 @@ jobs:
     needs: sync_version
   
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: main
   
     - name: Python setup
       uses: actions/setup-python@v2
@@ -107,7 +110,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Download artifact
       uses: actions/download-artifact@v2
@@ -152,8 +158,10 @@ jobs:
     needs: sync_version
 
     steps:
-    - name: Checkout code
+    - name: Checkout repo
       uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Setup Node.js
       uses: actions/setup-node@v2
@@ -188,7 +196,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Setup Node.js environment
       uses: actions/setup-node@v2
@@ -243,7 +254,10 @@ jobs:
     if: github.event_name == 'release'
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Download Yak artifact
       uses: actions/download-artifact@v2
@@ -256,12 +270,6 @@ jobs:
       with:
         name: script-sync-vsix
         path: VSCode/scriptsync
-
-    # # list what's in the directory VSCode\scriptsync
-    # - name: List VSIX artifact
-    #   run: |
-    #     ls -la VSCode/scriptsync
-    #   shell: bash
 
     # get the path of the name terminating with .vsix and set it to a variable
     - name: Get VSIX artifact path and save it to an output
