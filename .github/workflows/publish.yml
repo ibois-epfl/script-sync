@@ -65,7 +65,7 @@ jobs:
     - name: Merge pull request
       run: |
         $pr = gh pr list --head version-sync-branch --json number --jq '.[0].number'
-        gh pr merge $pr --squash --delete-branch --admin --force
+        gh pr merge $pr --squash --delete-branch --admin
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_PAT_TOKEN }}
       shell: pwsh
