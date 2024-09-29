@@ -105,7 +105,7 @@ jobs:
       run: invoke yakerize
   
     - name: Save artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: scriptsync_yak_package
         path: yaker\build\*.yak
@@ -121,7 +121,7 @@ jobs:
         ref: main
 
     - name: Download artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: scriptsync_yak_package
         path: yaker\build
@@ -191,7 +191,7 @@ jobs:
         vsce package
 
     - name: Save artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: script-sync-vsix
         path: VSCode/scriptsync/*.vsix
@@ -232,7 +232,7 @@ jobs:
         npm install @types/mocha --save-dev
 
     - name: Download artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: script-sync-vsix
         path: VSCode\scriptsync
@@ -261,13 +261,13 @@ jobs:
         ref: main
 
     - name: Download Yak artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: scriptsync_yak_package
         path: yaker/build
 
     - name: Download VSIX artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: script-sync-vsix
         path: VSCode/scriptsync
