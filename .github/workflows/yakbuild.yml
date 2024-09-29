@@ -36,7 +36,7 @@ jobs:
       run: invoke yakerize
 
     - name: Save artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: scriptsync_yak_package
         path: yaker/build/*.yak
