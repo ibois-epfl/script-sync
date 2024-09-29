@@ -113,6 +113,7 @@ namespace ScriptSync
                 {
                     try
                     {
+                        RhinoApp.WriteLine("ScriptSync Running: " + scriptPath);
                         RhinoApp.RunScript("_-ScriptEditor Run " + scriptPath, true);
                     }
                     catch (Exception e)
