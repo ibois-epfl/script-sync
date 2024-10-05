@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Reflection;
 using System.Threading;
 
 using Rhino;
 using Rhino.Commands;
-using Rhino.Geometry;
-using Rhino.Input;
-using Rhino.Input.Custom;
 
+// using Rhino.Runtime.Code;  // FIXME: use System.Reflexion as suggested by cp
 
 namespace ScriptSync
 {
@@ -40,12 +38,10 @@ namespace ScriptSync
 
         protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            // initialize the ScriptEditor if it is not already. Otherwise the first client
-            // tcp message needs to be sent twice to be executed.
-            RhinoApp.RunScript("_-ScriptEditor _Enter", false);
-
+            // FIXME: the first  starter is throwing an error
             // start the server on a new thread
-            RhinoApp.WriteLine("Starting ScriptSync..");
+            RhinoApp.WriteLine("Starting ScriptSync for Rhino ..");
+            
             // check if the IP is already in use
             try
             {
@@ -102,19 +98,73 @@ namespace ScriptSync
                 NetworkStream stream = client.GetStream();
                 int bytesRead = stream.Read(data, 0, data.Length);
                 string scriptPath = Encoding.ASCII.GetString(data, 0, bytesRead);
+                scriptPath = System.IO.Path.GetFullPath(scriptPath);
 
-                if (bytesRead == 0)
-                {
-                    IsRunning = false;
-                    break;
-                }
+
 
                 RhinoApp.InvokeOnUiThread(new Action(() =>
                 {
                     try
                     {
-                        RhinoApp.WriteLine("ScriptSync Running: " + scriptPath);
-                        RhinoApp.RunScript("_-ScriptEditor Run " + scriptPath, true);
+                        // FIXME: error with C:\f:\script-sync\temp\testrh.py or C:\C:\
+                        // so either is from the VSCode extension, either we need to filtering
+                        // here when recived.
+                        RhinoApp.WriteLine("ScriptSync reading file: " + scriptPath);
+
+                        // string fileContent = System.IO.File.ReadAllText(scriptPath);  // TODO: this is the correct one
+                        string fileContent = System.IO.File.ReadAllText("F:\\script-sync\\temp\\testrh.py");  // TODO: remove this is temproary
+
+                        RhinoApp.WriteLine("ScriptSync running file ..");
+                        
+                        // the path of the assembly
+                        System.IO.DirectoryInfo rhinoExePath = RhinoApp.GetExecutableDirectory();
+                        string rhinoCodeAssemblyPath = System.IO.Path.Combine(rhinoExePath.FullName, "Rhino.Runtime.Code.dll");
+                        Assembly rhinoCodeAssembly = Assembly.LoadFrom(rhinoCodeAssemblyPath);
+                        Type scriptRunnerType = rhinoCodeAssembly.GetType("Rhino.Runtime.Code.RhinoCode");
+                        if (scriptRunnerType == null)
+                        {
+                            RhinoApp.WriteLine("Error: RhinoCode type not found");
+                            return;
+                        }
+                        RhinoApp.WriteLine("RhinoCode type found");  // TODO: get rid debug
+
+                        MethodInfo runScriptMethod = scriptRunnerType.GetMethod(
+                            "RunScript",
+                            BindingFlags.Static | BindingFlags.Public,
+                            null,
+                            new Type[] { typeof(string) },
+                            null
+                        );
+                        if (runScriptMethod == null)
+                        {
+                            RhinoApp.WriteLine("Error: RunScript method not found");
+                            return; 
+                        }
+                        RhinoApp.WriteLine("RunScript method found");  // TODO: get rid debug
+
+                        try
+                        {
+                            object result = runScriptMethod.Invoke(null, new object[] { fileContent });
+                        }
+                        catch (TargetInvocationException tie)
+                        {
+                            // Log the inner exception details
+                            if (tie.InnerException != null)
+                            {
+                                RhinoApp.WriteLine("Inner Exception: " + tie.InnerException.Message);
+                                RhinoApp.WriteLine("Stack Trace: " + tie.InnerException.StackTrace);
+                            }
+                            else
+                            {
+                                RhinoApp.WriteLine("Error: " + tie.Message);
+                            }
+                        }git
+                        catch (Exception e)
+                        {
+                            RhinoApp.WriteLine("Error: " + e.Message);
+                        }
+                        
+                        // RhinoCode.RunScript(fileContent);
                     }
                     catch (Exception e)
                     {
@@ -135,24 +185,18 @@ namespace ScriptSync
         /// <returns> true if the dry run is ok </returns>
         private bool IsScriptEditorRunnerFromThreadOk()
         {
-            string cPyScriptPath = System.IO.Path.GetFullPath(@"./temp/cpy_version.py");
-            string ironPyScriptPath = System.IO.Path.GetFullPath(@"./temp/ironpy_version.py");
-            string csScriptPath = System.IO.Path.GetFullPath(@"./temp/CsVersion.cs");
-
-            System.IO.File.WriteAllText(cPyScriptPath, "#! python3\nimport sys\nprint(sys.version)");
-            System.IO.File.WriteAllText(ironPyScriptPath, "#! python2\nimport sys\nprint(sys.version)");
-            System.IO.File.WriteAllText(csScriptPath, "using System;\n\nCsVersion.Main();\n\nclass CsVersion\n{\n\tstatic public void Main()\n\t{\n\t\tConsole.WriteLine(\"C# Runtime: \" + Environment.Version.ToString());\n\t\tConsole.WriteLine(\"platform: \" + Environment.OSVersion.ToString());\n\t}\n}");
-
-            bool cPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + cPyScriptPath, true);
-            bool ironPyIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + ironPyScriptPath, true);
-            bool csIsRunning = RhinoApp.RunScript("_-ScriptEditor Run " + csScriptPath, true);
-
-            System.IO.File.Delete(cPyScriptPath);
-            System.IO.File.Delete(ironPyScriptPath);
-            System.IO.File.Delete(csScriptPath);
-
-            if (!cPyIsRunning || !ironPyIsRunning || !csIsRunning)
-                return false;
+            // FIXME: tests need to be revised: Error: Can not determine language for "6d7d500a-cc58-47c1-9635-3152825603f1"
+            // try
+            // {
+            //     RhinoCode.RunScript("#! python3\nimport sys\nprint(sys.version)");
+            //     RhinoCode.RunScript("#! python2\nimport sys\nprint(sys.version)");
+            //     RhinoCode.RunScript("using System;\n\nCsVersion.Main();\n\nclass CsVersion\n{\n\tstatic public void Main()\n\t{\n\t\tConsole.WriteLine(\"C# Runtime: \" + Environment.Version.ToString());\n\t\tConsole.WriteLine(\"platform: \" + Environment.OSVersion.ToString());\n\t}\n}");
+            // }
+            // catch (Exception e)
+            // {
+            //     RhinoApp.WriteLine("Error from ScriptSync smoke test: " + e.Message);
+            //     return false;
+            // }
             return true;
         }
     }

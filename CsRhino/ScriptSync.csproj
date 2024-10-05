@@ -15,10 +15,13 @@
     <EmbeddedResource Include="EmbeddedResources\logo\scriptsync_48.ico" />
   </ItemGroup>
 
+  <!-- nuget assembly -->
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="7.13.21348.13001" IncludeAssets="compile;build" />
+    <PackageReference Include="RhinoCommon" Version="8.*" IncludeAssets="compile;build" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.6" />
   </ItemGroup>
+
+  
 
   <ItemGroup>
     <Compile Remove="tests\CsVersion.cs" />
