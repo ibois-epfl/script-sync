@@ -101,7 +101,7 @@ For bugs open an issue on the [GitHub repo](https://github.com/ibois-epfl/script
 All contributions are welcome. Have a look at the [contribution guidelines](CONTRIBUTING.md).
 
 ## References
-There are a lot of plug-ins that allow to run Python in Rhino. Among them, [CodeListener](https://github.com/ccc159/CodeListener) was working until RhinoV8 and it was a source of inspiration for this project. This is a simplified version, but it can run `C#` and both `IronPython` and `CPython` in RhinoV8.
+There are a lot of plug-ins that allow to run Python in Rhino. Among them, [CodeListener](https://github.com/ccc159/CodeListener) was working until RhinoV8 and it was a source of inspiration for this project.
 
 # For code maintainers
 Packages are published (`.yak` and `.vsix`)  automatically when a GitHub release is created.
