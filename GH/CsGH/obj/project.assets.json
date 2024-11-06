@@ -1,0 +1,138 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETFramework,Version=v4.8": {
+      "Grasshopper/8.0.23164.14305-wip": {
+        "type": "package",
+        "dependencies": {
+          "RhinoCommon": "[8.0.23164.14305-wip]"
+        },
+        "compile": {
+          "lib/net48/GH_IO.dll": {},
+          "lib/net48/Grasshopper.dll": {}
+        },
+        "runtime": {
+          "lib/net48/_._": {}
+        },
+        "build": {
+          "build/net48/Grasshopper.targets": {}
+        }
+      },
+      "RhinoCommon/8.0.23164.14305-wip": {
+        "type": "package",
+        "compile": {
+          "lib/net48/Ed.Eto.dll": {},
+          "lib/net48/Eto.dll": {},
+          "lib/net48/Rhino.UI.dll": {},
+          "lib/net48/RhinoCommon.dll": {}
+        },
+        "runtime": {
+          "lib/net48/_._": {}
+        },
+        "build": {
+          "build/net48/RhinoCommon.targets": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Grasshopper/8.0.23164.14305-wip": {
+      "sha512": "hzHby/AFHT2jnlsA+gKr7exeFuy/xS8oRU1c8zY4GxmYXRGcIqyOAmeVm2e3pvqkcerCp7KYGMHfw4ukpuOaOA==",
+      "type": "package",
+      "path": "grasshopper/8.0.23164.14305-wip",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/net48/Grasshopper.targets",
+        "grasshopper.8.0.23164.14305-wip.nupkg.sha512",
+        "grasshopper.nuspec",
+        "grasshopper.png",
+        "lib/net48/GH_IO.dll",
+        "lib/net48/GH_IO.xml",
+        "lib/net48/Grasshopper.dll",
+        "lib/net48/Grasshopper.xml"
+      ]
+    },
+    "RhinoCommon/8.0.23164.14305-wip": {
+      "sha512": "kTIWpk+jOG6TmNIn/usy3cX9hyAOT3DITL8CFe6QgpCU7H19c0S3Lm/jAHh0xUJb+WdigsgBgQUeloBwHNc+/g==",
+      "type": "package",
+      "path": "rhinocommon/8.0.23164.14305-wip",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Eto-LICENSE.txt",
+        "build/net48/RhinoCommon.targets",
+        "lib/net48/Ed.Eto.dll",
+        "lib/net48/Ed.Eto.xml",
+        "lib/net48/Eto.dll",
+        "lib/net48/Eto.xml",
+        "lib/net48/Rhino.UI.dll",
+        "lib/net48/RhinoCommon.dll",
+        "lib/net48/RhinoCommon.xml",
+        "rhinocommon.8.0.23164.14305-wip.nupkg.sha512",
+        "rhinocommon.nuspec",
+        "rhinocommon.png"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETFramework,Version=v4.8": [
+      "Grasshopper >= 8.0.23164.14305-wip"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\andre\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "F:\\script-sync\\GH\\CsGH\\CsGH.csproj",
+      "projectName": "CsGH",
+      "projectPath": "F:\\script-sync\\GH\\CsGH\\CsGH.csproj",
+      "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+      "outputPath": "F:\\script-sync\\GH\\CsGH\\obj\\",
+      "projectStyle": "PackageReference",
+      "crossTargeting": true,
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net48"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net48": {
+        "targetAlias": "net48",
+        "dependencies": {
+          "Grasshopper": {
+            "include": "Compile, Build",
+            "target": "Package",
+            "version": "[8.0.23164.14305-wip, )"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.408\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
