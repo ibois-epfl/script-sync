@@ -87,9 +87,7 @@ For Python files, add a `shebang` to the first line of the file to specify the i
 * ⚠️ `#! python2` to interpret it with IronPython (only in Rhino)
 
 > [!TIP]
-> If you want your script-sync VSCode extension to automatically update, you should thick the autoinstall box:
-> 
-> ![imgtreeconv](GH\PyGH\assets\img\autoinstall.png)
+> If you want your script-sync VSCode extension to automatically update, you should thick the autoinstall box in the vscode extension page.
 
 ## Requirements
 The plug-in needs to be installed on RhinoV8, Grasshopper and VSCode
