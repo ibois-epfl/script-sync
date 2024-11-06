@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(TargetFramework)' == 'net48' AND '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)rhinocommon\8.0.23164.14305-wip\build\net48\RhinoCommon.targets" Condition="Exists('$(NuGetPackageRoot)rhinocommon\8.0.23164.14305-wip\build\net48\RhinoCommon.targets')" />
+    <Import Project="$(NuGetPackageRoot)grasshopper\8.0.23164.14305-wip\build\net48\Grasshopper.targets" Condition="Exists('$(NuGetPackageRoot)grasshopper\8.0.23164.14305-wip\build\net48\Grasshopper.targets')" />
+  </ImportGroup>
+</Project>

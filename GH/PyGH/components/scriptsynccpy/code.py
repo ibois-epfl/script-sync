@@ -401,7 +401,6 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
             return locals
 
         except Exception as e:
-            # sys.stdout = sys.__stdout__
             # Get the traceback
             tb = traceback.format_exc()
 
@@ -478,6 +477,18 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
             its calculation. It is used to load the GHComponent outputs
             with the values created in the script.
         """
+        def _is_first_lvl_nested_iterable(lst : typing.List) -> bool:
+            """
+            Detect if the first level of a list is nested. 
+            e.g. 
+                [1, 2, 3, 4, [5,6]] --> return value: False
+                [[1, 2], [3, 4]] --> return value: True
+
+            :param lst: The list to check
+            :return: True if the first level is nested, False otherwise
+            """
+            return all(isinstance(item, list) for item in lst)
+        
         def _nesting_level(container: typing.Union[typing.List, typing.Tuple]) -> int:
             """ Get the level of nesting of a list or tuple. """
             if isinstance(container, (list, tuple)):
@@ -485,10 +496,38 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
             else:
                 return 0
 
-        def _is_nested_iterable( lst):
-            """ Detect if a list is nested. """
-            return any(isinstance(i, list) for i in lst)
-        
+        def _force_nesting_list(lst : typing.List) -> list:
+            """
+                Transform a list with nested lists into a list of lists.
+                
+                Example:
+                >>> list_C = [
+                                1, 2, 3, 4,  # {0;0}
+                                [5, 6],      # {1;0}
+                                [7, 8]       # {2;0}
+                            ]
+                >>> _force_nesting_list(list_C)
+                [[1, 2, 3, 4], [5, 6], [7, 8]]
+
+                :param lst: The list to transform
+                :return: The transformed list
+            """
+            transformed_list = []
+            sublist = []
+            
+            for item in lst:
+                if isinstance(item, list):
+                    if sublist:
+                        transformed_list.append(sublist)
+                        sublist = []
+                    transformed_list.append(item)
+                else:
+                    sublist.append(item)
+            if sublist:
+                transformed_list.append(sublist)
+            
+            return transformed_list
+
         if not self.is_success:
             return
 
@@ -496,23 +535,46 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         outparam_names = [p.NickName for p in outparam]
 
         for idx, outp in enumerate(outparam):
-            # case: nested lists
+            # case 1: nested lists
             if type(self._var_output[idx]) == tuple or type(self._var_output[idx]) == list:
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                if _nesting_level(self._var_output[idx]) == 1:
+
+                list_nest_lvl = _nesting_level(self._var_output[idx])
+
+                # case *: force the nesting of the list if it is nested but also with single elements on the first level (e.g. [1, 2, [3, 4]] --> [[1, 2], [3, 4]])
+                if list_nest_lvl >= 2 and _is_first_lvl_nested_iterable(self._var_output[idx]) is False:
+                    self._var_output[idx] = _force_nesting_list(self._var_output[idx])
+
+                # case 1.A: <<< DESCRIPTION >>>
+                if list_nest_lvl == 1:
                     ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
-                elif _nesting_level(self._var_output[idx]) == 2:
+                # case 1.B: <<< DESCRIPTION >>>
+                elif list_nest_lvl == 2:
                     nbr_tuples_aka_branches = len(self._var_output[idx])
                     for i in range(nbr_tuples_aka_branches):
                         ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
-                elif _nesting_level(self._var_output[idx]) > 2:
+                # case 1.C: <<< DESCRIPTION >>>
+                elif list_nest_lvl > 2:
+
+
+                    # TODO: to be solved
+                    # >>>>>>>>>>>>>>>>>>>>>>>>>
+                    def add_volatile_data_recursive(output_param, data, path):
+                        if isinstance(data, list):
+                            for i, item in enumerate(data):
+                                new_path = path.AppendElement(i)
+                                add_volatile_data_recursive(output_param, item, new_path)
+                        else:
+                            output_param.AddVolatileData(path, data)  # FIXME: problem
                     nbr_tuples_aka_branches = len(self._var_output[idx])
                     for i in range(nbr_tuples_aka_branches):
-                        for j in range(len(self._var_output[idx][i])):
-                            ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i, j), self._var_output[idx][i][j])
+                        path = gh.Kernel.Data.GH_Path(i)
+                        add_volatile_data_recursive(ghenv.Component.Params.Output[idx], self._var_output[idx][i], path)
+                    # <<<<<<<<<<<<<<<<<<<<<<<<<
             else:
+            # case 2: single values
                 ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                # case: the user is returning a Grasshopper.DataTree[System.Object] via the utility ghpythonlib.treehelpers
+                # case 2.A: the user is returning a Grasshopper.DataTree[System.Object] via the utility ghpythonlib.treehelpers
                 # e.g.: list_tree = th.list_to_tree(list_A)
                 # this will be conserve the structure
                 if type(self._var_output[idx]) == Grasshopper.DataTree[System.Object]:
@@ -523,9 +585,10 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
                         print(path)
                         data = self._var_output[idx].Branch(path)
                         ghenv.Component.Params.Output[idx].AddVolatileDataList(path, data)
-                # case: simple single value
+                # case 2.B: simple single value
                 else:
                     ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+        
         self._var_output.clear()
 
     @property

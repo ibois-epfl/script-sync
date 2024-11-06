@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "YysQEqrSBDoSgLrjrvnusf6yyCS6W8Dl1PqWizXcJDL678ay7hpOzvKmKZFcviv2GM4Yj3sZx9PDJZjV0Ax0pg==",
+  "success": true,
+  "projectFilePath": "F:\\script-sync\\GH\\CsGH\\CsGH.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\andre\\.nuget\\packages\\grasshopper\\8.0.23164.14305-wip\\grasshopper.8.0.23164.14305-wip.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\rhinocommon\\8.0.23164.14305-wip\\rhinocommon.8.0.23164.14305-wip.nupkg.sha512"
+  ],
+  "logs": []
+}

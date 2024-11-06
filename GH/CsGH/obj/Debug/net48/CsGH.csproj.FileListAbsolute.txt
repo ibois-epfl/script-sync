@@ -1,0 +1,9 @@
+F:\script-sync\GH\CsGH\bin\Debug\net48\CsGH.gha
+F:\script-sync\GH\CsGH\bin\Debug\net48\CsGH.pdb
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.csproj.AssemblyReference.cache
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.GeneratedMSBuildEditorConfig.editorconfig
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.AssemblyInfoInputs.cache
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.AssemblyInfo.cs
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.csproj.CoreCompileInputs.cache
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.gha
+F:\script-sync\GH\CsGH\obj\Debug\net48\CsGH.pdb
