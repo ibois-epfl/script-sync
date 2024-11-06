@@ -1,10 +1,5 @@
 import System
 import System.Drawing
-import Rhino
-import rhinoscriptsyntax as rs
-import Grasshopper
-import Grasshopper as gh
-from Grasshopper.Kernel import GH_RuntimeMessageLevel as RML
 import sys
 import os
 import time
@@ -24,6 +19,14 @@ import importlib
 import sys
 
 import traceback
+
+import Rhino
+import rhinoscriptsyntax as rs
+import Grasshopper
+import Grasshopper as gh
+from Grasshopper.Kernel import GH_RuntimeMessageLevel as RML
+import ghpythonlib.treehelpers as th
+
 
 def add_button(self,
     nickname: str,
@@ -528,6 +531,34 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
             
             return transformed_list
 
+        def _get_list_shape(lst : typing.List) -> tuple:
+            """
+                Get the shape of a list of lists.
+                
+                Example:
+                >>> list_A = [
+                                [
+                                    [1, 2],  # {0;0}
+                                    [3, 4]   # {0;1}
+                                ],
+                                [
+                                    [5, 6],  # {1;0}
+                                    [7, 8]   # {1;1}
+                                ]
+                            ]
+                >>> _get_list_shape(list_A)
+                (2, 2, 2)
+
+                :param lst: The list to get the shape of
+                :return: The shape of the list
+            """
+            if isinstance(lst, list):
+                if len(lst) == 0:
+                    return (0,)
+                return (len(lst),) + _get_list_shape(lst[0])
+            else:
+                return ()
+
         if not self.is_success:
             return
 
@@ -537,57 +568,66 @@ class ScriptSyncCPy(Grasshopper.Kernel.GH_ScriptInstance):
         for idx, outp in enumerate(outparam):
             # case 1: nested lists
             if type(self._var_output[idx]) == tuple or type(self._var_output[idx]) == list:
-                ghenv.Component.Params.Output[idx].VolatileData.Clear()
-
-                list_nest_lvl = _nesting_level(self._var_output[idx])
-
-                # case *: force the nesting of the list if it is nested but also with single elements on the first level (e.g. [1, 2, [3, 4]] --> [[1, 2], [3, 4]])
-                if list_nest_lvl >= 2 and _is_first_lvl_nested_iterable(self._var_output[idx]) is False:
-                    self._var_output[idx] = _force_nesting_list(self._var_output[idx])
-
-                # case 1.A: <<< DESCRIPTION >>>
-                if list_nest_lvl == 1:
-                    ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
-                # case 1.B: <<< DESCRIPTION >>>
-                elif list_nest_lvl == 2:
-                    nbr_tuples_aka_branches = len(self._var_output[idx])
-                    for i in range(nbr_tuples_aka_branches):
-                        ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
-                # case 1.C: <<< DESCRIPTION >>>
-                elif list_nest_lvl > 2:
+                self._var_output[idx] = th.list_to_tree(self._var_output[idx])
 
 
-                    # TODO: to be solved
-                    # >>>>>>>>>>>>>>>>>>>>>>>>>
-                    def add_volatile_data_recursive(output_param, data, path):
-                        if isinstance(data, list):
-                            for i, item in enumerate(data):
-                                new_path = path.AppendElement(i)
-                                add_volatile_data_recursive(output_param, item, new_path)
-                        else:
-                            output_param.AddVolatileData(path, data)  # FIXME: problem
-                    nbr_tuples_aka_branches = len(self._var_output[idx])
-                    for i in range(nbr_tuples_aka_branches):
-                        path = gh.Kernel.Data.GH_Path(i)
-                        add_volatile_data_recursive(ghenv.Component.Params.Output[idx], self._var_output[idx][i], path)
-                    # <<<<<<<<<<<<<<<<<<<<<<<<<
-            else:
+                # ghenv.Component.Params.Output[idx].VolatileData.Clear()
+
+                # list_nest_lvl = _nesting_level(self._var_output[idx])
+
+                # # case *: force the nesting of the list if it is nested but also with single elements on the first level (e.g. [1, 2, [3, 4]] --> [[1, 2], [3, 4]])
+                # if list_nest_lvl >= 2 and _is_first_lvl_nested_iterable(self._var_output[idx]) is False:
+                #     self._var_output[idx] = _force_nesting_list(self._var_output[idx])
+
+                # # case 1.A: <<< DESCRIPTION >>>
+                # if list_nest_lvl == 1:
+                #     ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(0), self._var_output[idx])
+                # # case 1.B: <<< DESCRIPTION >>>
+                # elif list_nest_lvl == 2:
+                #     nbr_tuples_aka_branches = len(self._var_output[idx])
+                #     for i in range(nbr_tuples_aka_branches):
+                #         ghenv.Component.Params.Output[idx].AddVolatileDataList(gh.Kernel.Data.GH_Path(i), self._var_output[idx][i])
+                # # case 1.C: <<< DESCRIPTION >>>
+                # elif list_nest_lvl > 2:
+
+
+                #     # TODO: to be solved
+                #     # >>>>>>>>>>>>>>>>>>>>>>>>>
+                #     list_shape = _get_list_shape(self._var_output[idx])
+                #     # Create a recursive function to add the volatile data
+
+
+                #     def add_volatile_data_recursive(output_param, data, path):
+                #         if isinstance(data, list):
+                #             for i, item in enumerate(data):
+                #                 new_path = gh.Kernel.Data.GH_Path(path)
+                #                 new_path = new_path.AppendElement(i)
+                #                 add_volatile_data_recursive(output_param, item, new_path)
+                #         else:
+                #             output_param.AddVolatileData(path, 0, data)  # Use index 0 for leaf nodes
+
+                #     # Example usage within your existing code
+                #     nbr_tuples_aka_branches = len(self._var_output[idx])
+                #     for i in range(nbr_tuples_aka_branches):
+                #         path = gh.Kernel.Data.GH_Path(i)
+                #         add_volatile_data_recursive(ghenv.Component.Params.Output[idx], self._var_output[idx][i], path)
+                #     # <<<<<<<<<<<<<<<<<<<<<<<<<
+            # else:
             # case 2: single values
-                ghenv.Component.Params.Output[idx].VolatileData.Clear()
-                # case 2.A: the user is returning a Grasshopper.DataTree[System.Object] via the utility ghpythonlib.treehelpers
-                # e.g.: list_tree = th.list_to_tree(list_A)
-                # this will be conserve the structure
-                if type(self._var_output[idx]) == Grasshopper.DataTree[System.Object]:
-                    self._var_output[idx].SimplifyPaths()
-                    branch_count = self._var_output[idx].BranchCount
-                    for i in range(branch_count):
-                        path = self._var_output[idx].Paths[i]
-                        print(path)
-                        data = self._var_output[idx].Branch(path)
-                        ghenv.Component.Params.Output[idx].AddVolatileDataList(path, data)
-                # case 2.B: simple single value
-                else:
-                    ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
+            ghenv.Component.Params.Output[idx].VolatileData.Clear()
+            # case 2.A: the user is returning a Grasshopper.DataTree[System.Object] via the utility ghpythonlib.treehelpers
+            # e.g.: list_tree = th.list_to_tree(list_A)
+            # this will be conserve the structure
+            if type(self._var_output[idx]) == Grasshopper.DataTree[System.Object]:
+                # self._var_output[idx].SimplifyPaths()
+                branch_count = self._var_output[idx].BranchCount
+                for i in range(branch_count):
+                    path = self._var_output[idx].Paths[i]
+                    data = self._var_output[idx].Branch(path)
+                    ghenv.Component.Params.Output[idx].AddVolatileDataList(path, data)
+            # case 2.B: simple single value
+            else:
+                ghenv.Component.Params.Output[idx].AddVolatileData(gh.Kernel.Data.GH_Path(0), 0, self._var_output[idx])
         
         self._var_output.clear()
 
