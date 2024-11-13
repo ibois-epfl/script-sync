@@ -89,7 +89,7 @@ For Python files, add a `shebang` to the first line of the file to specify the i
 > [!TIP]
 > If you want your script-sync VSCode extension to automatically update, you should thick the autoinstall box in the vscode extension page.
 
-> [!WARNING]
+> [!CAUTION]
 > If you use modules like `pickle` to (de)serialize objects script-sync might causes problems because we reload all the modules at every file save. This can interfere with `pickle` thinking that a class is instanciated multiple times.
 
 ## Requirements
